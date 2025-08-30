@@ -26,6 +26,20 @@ namespace SerenityAITranslator.Editor.Tools
             }
         };
         
+        public static readonly GUIStyle DarkRowStyle = new GUIStyle
+        {
+            normal =
+            {
+                background = UiTools.MakeColorTexture(UiTools.HexToColor("#222222"), 1, 1)
+            }
+        };
+        
+        public static readonly GUIStyle LabelStyleCenter = new GUIStyle(EditorStyles.label)
+        {
+            alignment = TextAnchor.MiddleCenter,
+            fontStyle = FontStyle.Bold,
+        };
+        
         public static readonly GUIStyle LabelRowStyle = new GUIStyle(EditorStyles.label)
         {
             wordWrap = true,

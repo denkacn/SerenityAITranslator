@@ -1,36 +1,40 @@
-using I2.Loc;
+using SerenityAITranslator.Editor.Services.Common.Views;
 using SerenityAITranslator.Editor.Services.Translation.Managers;
+using SerenityAITranslator.Editor.Services.Translation.SourceAssetProvider;
 using SerenityAITranslator.Editor.Tools;
 using UnityEditor;
 using UnityEngine;
 
 namespace SerenityAITranslator.Editor.Services.Translation.Views
 {
-    public class TranslationTermsView : BaseExtensionView
+    public class TranslateTermsView : BaseView
     {
-        private readonly I2LocAiTranslateExtensionManager _translateExtensionManager;
-        private readonly LanguageSourceAsset _languageSourceAsset;
+        private readonly TranslateManager _translateManager;
+        private readonly ISourceAssetProvider _sourceAssetProvider;
         private Vector2 _scrollPosition;
         private int _editRowId = -1;
         
-        public TranslationTermsView(EditorWindow owner, I2LocAiTranslateExtensionManager translateExtensionManager, LanguageSourceAsset languageSourceAsset) : base(owner)
+        public TranslateTermsView(EditorWindow owner, TranslateManager translateManager, ISourceAssetProvider sourceAssetProvider) : base(owner)
         {
-            _translateExtensionManager = translateExtensionManager;
-            _languageSourceAsset = languageSourceAsset;
+            _translateManager = translateManager;
+            _sourceAssetProvider = sourceAssetProvider;
         }
         
-        public void Draw()
+        public override void Draw()
         {
-            if (_translateExtensionManager.GetTranslationsData() == null) return;
+            if (_translateManager.GetTranslationsData() == null) return;
             
-            var rows = _translateExtensionManager.GetTranslationsData();
+            var rows = _translateManager.GetTranslationsData();
             
-            EditorGUILayout.LabelField("Translation Table", EditorStyles.boldLabel);
+            EditorGUILayout.BeginHorizontal(UiStyles.OddRowStyle);
+            EditorGUILayout.LabelField("Translation Table", UiStyles.LabelStyleCenter);
+            EditorGUILayout.EndHorizontal();
+            
             _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition);
 
             EditorGUI.indentLevel++;
 
-            EditorGUILayout.BeginHorizontal(UiStyles.OddRowStyle);
+            EditorGUILayout.BeginHorizontal(UiStyles.DarkRowStyle);
             //EditorGUILayout.LabelField("Id", UiStyles.LabelHeaderStyle, GUILayout.Width(40));
             EditorGUILayout.LabelField("Terms", UiStyles.LabelHeaderStyle, GUILayout.Width(215));
             EditorGUILayout.LabelField("Base Text", UiStyles.LabelHeaderStyle, GUILayout.Width(415));
@@ -72,11 +76,11 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
                     EditorGUILayout.LabelField(translatedText, UiStyles.LabelRowStyle, GUILayout.Width(400), GUILayout.Height(height));
                 }
                 
-                if (_translateExtensionManager.IsTranslateProviderAndTranslateSettingSetup)
+                if (_translateManager.IsTranslateProviderAndTranslateSettingSetup)
                 {
                     if (GUILayout.Button("Translate", GUILayout.Width(80)))
                     {
-                        _translateExtensionManager.TranslateOne(row, Repaint);
+                        _translateManager.TranslateOne(row, Repaint);
                         GUI.FocusControl(null);
                     }
                     
@@ -110,9 +114,9 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
                         var addButtonContent = new GUIContent("A", "Apply Change");
                         if (GUILayout.Button(addButtonContent, GUILayout.Width(20)))
                         {
-                            if (_translateExtensionManager.ApplyChange(row))
+                            if (_translateManager.ApplyChange(row))
                             {
-                                EditorUtility.SetDirty(_languageSourceAsset);
+                                EditorUtility.SetDirty(_sourceAssetProvider.GetAsset());
                                 AssetDatabase.SaveAssets();
                             }
                         }
@@ -121,7 +125,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
                         if (GUILayout.Button(rewertButtonContent, GUILayout.Width(20)))
                         {
                             GUI.FocusControl(null);
-                            _translateExtensionManager.RewertChange(row);
+                            _translateManager.RewertChange(row);
                         }
                     }
                     
@@ -136,35 +140,6 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
             }
             
             EditorGUILayout.Space();
-
-            //down button no needed
-            /*if (_translateExtensionManager.IsTranslateProviderAndTranslateSettingSetup)
-            {
-                EditorGUILayout.BeginHorizontal();
-                GUILayout.FlexibleSpace();
-                
-                if (_translateExtensionManager.IsTranslateAllStarted)
-                {
-                    if (GUILayout.Button("Stop Translate Process", GUILayout.Width(100)))
-                    {
-                        _translateExtensionManager.StopTranslateProcess();
-                    }
-                }
-                else
-                {
-                    if (GUILayout.Button("Translate All", GUILayout.Width(100)))
-                    {
-                        var result = UiTools.DisplayTranslateAllDialog();
-                        
-                        if (result) _translateExtensionManager.TranslateAll(Repaint);
-                    }
-                }
-                
-                EditorGUILayout.EndHorizontal();
-            
-                EditorGUILayout.Space();
-                EditorGUILayout.Space();
-            }*/
             
             EditorGUI.indentLevel--;
             EditorGUILayout.EndScrollView();

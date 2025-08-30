@@ -6,7 +6,7 @@ using SerenityAITranslator.Editor.Services.Translation.AiProviders.Settings;
 namespace SerenityAITranslator.Editor.Services.Translation.Context
 {
     [Serializable]
-    public class I2LocAiExtensionContext
+    public class TranslatedContext
     {
         public IAiTranslateProvider TranslateProvider { get; set; }
         public BaseTranslateProviderSettings TranslateSettings { get; set; }

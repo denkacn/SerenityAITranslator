@@ -3,28 +3,27 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using I2.Loc;
 using Newtonsoft.Json;
 using SerenityAITranslator.Editor.Services.Common.Models;
 using SerenityAITranslator.Editor.Services.Translation.AiProviders;
 using SerenityAITranslator.Editor.Services.Translation.AiProviders.Settings;
 using SerenityAITranslator.Editor.Services.Translation.Context;
 using SerenityAITranslator.Editor.Services.Translation.Models;
+using SerenityAITranslator.Editor.Services.Translation.SourceAssetProvider;
 using UnityEngine;
 
 namespace SerenityAITranslator.Editor.Services.Translation.Managers
 {
-    [Serializable]
-    public class I2LocAiTranslateExtensionManager
+    public class TranslateManager
     {
         private const string DefaultPromt =
             "Translate fully the following into {0} and return ONLY the translations in the same format, be case-sensitive, consider line breaks, inside curly braces, with nothing else in the output:\n{1}";
         
-        private readonly LanguageSourceAsset _languageSourceAsset;
-        private readonly I2LocAiExtensionContext _context;
+        private readonly ISourceAssetProvider _sourceAssetProvider;
+        private readonly TranslatedContext _context;
         
-        private List<string> _availableLanguages = new List<string>();
-        private List<TranslationRowData> _translationsData = new List<TranslationRowData>();
+        private readonly List<string> _availableLanguages;
+        private readonly List<TranslatedRowData> _translationsData = new List<TranslatedRowData>();
         private List<BaseTranslateProviderSettings> _translateProviderSettingsList = new List<BaseTranslateProviderSettings>();
         private List<PromtSettingData> _promtSettingsData = new List<PromtSettingData>();
         private CancellationTokenSource _translateAllCancellationTokenSource = new CancellationTokenSource();
@@ -32,7 +31,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
         private bool _isTranslateAllStarted = false;
         
         public List<string> GetAvailableLanguages() => _availableLanguages;
-        public List<TranslationRowData> GetTranslationsData() => _translationsData;
+        public List<TranslatedRowData> GetTranslationsData() => _translationsData;
         public List<BaseTranslateProviderSettings> GetTranslateProviderSettingsList() => _translateProviderSettingsList;
         public List<PromtSettingData> GetPromtSettingsData() => _promtSettingsData;
         
@@ -44,15 +43,12 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
         public string SelectedTranslateProviderId => _context.TranslateSettings != null ? _context.TranslateSettings.Id : string.Empty;
         public bool IsTranslateAllStarted => _isTranslateAllStarted;
 
-        public I2LocAiTranslateExtensionManager(LanguageSourceAsset languageSourceAsset, I2LocAiExtensionContext context)
+        public TranslateManager(ISourceAssetProvider sourceAssetProvider, TranslatedContext context)
         {
-            _languageSourceAsset = languageSourceAsset;
+            _sourceAssetProvider = sourceAssetProvider;
             _context = context;
 
-            foreach (var languageData in _languageSourceAsset.SourceData.mLanguages)
-            {
-                _availableLanguages.Add(languageData.Name);
-            }
+            _availableLanguages = _sourceAssetProvider.GetLanguages();
             
             SourceLanguage = _availableLanguages[0];
             DestinationLanguage = _availableLanguages[0];
@@ -64,8 +60,8 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
         public void GetTranslationTerms(string filter = null)
         {
             _translationsData.Clear();
-            
-            var terms = _languageSourceAsset.SourceData.mTerms;
+
+            var terms = _sourceAssetProvider.GetTerms();
             var index = 0;
             
             foreach (var term in terms)
@@ -73,7 +69,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
                 if (string.IsNullOrEmpty(term.Term)) continue;
                 if (filter != null && !term.Term.Contains(filter)) continue;
 
-                _translationsData.Add(new TranslationRowData(index, term.Term,
+                _translationsData.Add(new TranslatedRowData(index, term.Term,
                     term.Languages[_availableLanguages.IndexOf(SourceLanguage)],
                     term.Languages[_availableLanguages.IndexOf(DestinationLanguage)]));
 
@@ -90,11 +86,11 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
             TranslateAllAsync(onCompleted, _translateAllCancellationTokenSource.Token).ConfigureAwait(false);
         }
 
-        public void TranslateOne(TranslationRowData translationData, Action onCompleted)
+        public void TranslateOne(TranslatedRowData translatedData, Action onCompleted)
         {
             if (_isTranslateAllStarted) return;
             
-            TranslateOneAsync(translationData, onCompleted).ConfigureAwait(false);
+            TranslateOneAsync(translatedData, onCompleted).ConfigureAwait(false);
         }
 
         public void StopTranslateProcess()
@@ -108,14 +104,14 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
 
         #region Async Operations
 
-        public async Task TranslateOneAsync(TranslationRowData translationData, 
+        public async Task TranslateOneAsync(TranslatedRowData translatedData, 
             Action onCompleted,
             CancellationToken cancellationToken = default)
         {
             var promtData = new TranslatedPromtData(
-                translationData.Term, 
+                translatedData.Term, 
                 DestinationLanguage,
-                translationData.SourceText,
+                translatedData.SourceText,
                 string.IsNullOrEmpty(SelectedPromt) ? DefaultPromt : SelectedPromt);
 
             var result = await _context.TranslateProvider
@@ -123,8 +119,8 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
 
             if (!cancellationToken.IsCancellationRequested && result.IsNoError)
             {
-                translationData.TranslatedText = result.Translation;
-                translationData.IsShowTranslated = true;
+                translatedData.TranslatedText = result.Translation;
+                translatedData.IsShowTranslated = true;
                 onCompleted?.Invoke();
             }
         }
@@ -153,28 +149,28 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
             {
                 if (string.IsNullOrEmpty(translationData.TranslatedText)) continue;
                 
-                _languageSourceAsset.SourceData.mTerms.Find(t => t.Term == translationData.Term)
+                _sourceAssetProvider.GetTerms().Find(t => t.Term == translationData.Term)
                     .Languages[_availableLanguages.IndexOf(DestinationLanguage)] = translationData.TranslatedText;
             }
 
             return true;
         }
 
-        public bool ApplyChange(TranslationRowData translationData)
+        public bool ApplyChange(TranslatedRowData translatedData)
         {
-            if (string.IsNullOrEmpty(translationData.TranslatedText)) return false;
+            if (string.IsNullOrEmpty(translatedData.TranslatedText)) return false;
             
-            _languageSourceAsset.SourceData.mTerms.Find(t => t.Term == translationData.Term)
-                .Languages[_availableLanguages.IndexOf(DestinationLanguage)] = translationData.TranslatedText;
+            _sourceAssetProvider.GetTerms().Find(t => t.Term == translatedData.Term)
+                .Languages[_availableLanguages.IndexOf(DestinationLanguage)] = translatedData.TranslatedText;
             
-            translationData.OriginalText = translationData.TranslatedText;
+            translatedData.OriginalText = translatedData.TranslatedText;
             
             return true;
         }
         
-        public void RewertChange(TranslationRowData translationData)
+        public void RewertChange(TranslatedRowData translatedData)
         {
-            translationData.TranslatedText = translationData.OriginalText;
+            translatedData.TranslatedText = translatedData.OriginalText;
         }
 
         public void AddTranslateProviderSettings(BaseTranslateProviderSettings translateProviderSettings)
@@ -194,21 +190,24 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
         public void SelectTranslateProviderSettings(BaseTranslateProviderSettings provider)
         {
             _context.TranslateSettings = provider;
-            switch (provider.TextProviderType)
+            switch (provider.ProviderType)
             {
-                case AiTextProviderType.None:
+                case TextProviderType.None:
                     break;
-                case AiTextProviderType.LmStudio:
+                case TextProviderType.LmStudio:
                     _context.TranslateProvider = new LmStudioTranslateProvider();
                     break;
-                case AiTextProviderType.Ollama:
+                case TextProviderType.Ollama:
                     _context.TranslateProvider = new OllamaTranslateProvider();
                     break;
-                case AiTextProviderType.OpenAi:
+                case TextProviderType.OpenAi:
                     _context.TranslateProvider = new OpenAiTranslateProvider();
                     break;
-                case AiTextProviderType.DeepSeek:
+                case TextProviderType.DeepSeek:
                     _context.TranslateProvider = new LmStudioTranslateProvider();
+                    break;
+                case TextProviderType.GoogleAi:
+                    _context.TranslateProvider = new GoogleAiTranslateProvider();
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

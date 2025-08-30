@@ -1,6 +1,6 @@
 namespace SerenityAITranslator.Editor.Services.Translation.Models
 {
-    public class TranslationRowData
+    public class TranslatedRowData
     {
         public int Id { get; set; }
         public string Term { get; set; }
@@ -9,7 +9,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.Models
         public string TranslatedText { get; set; }
         public bool IsShowTranslated { get; set; }
         
-        public TranslationRowData(int id, string term, string sourceText, string originalText)
+        public TranslatedRowData(int id, string term, string sourceText, string originalText)
         {
             Id = id;
             Term = term;

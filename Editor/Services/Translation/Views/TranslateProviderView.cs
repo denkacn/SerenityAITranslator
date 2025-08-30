@@ -1,3 +1,4 @@
+using SerenityAITranslator.Editor.Services.Common.Views;
 using SerenityAITranslator.Editor.Services.Translation.AiProviders;
 using SerenityAITranslator.Editor.Services.Translation.AiProviders.Settings;
 using SerenityAITranslator.Editor.Services.Translation.Managers;
@@ -7,18 +8,18 @@ using UnityEngine;
 
 namespace SerenityAITranslator.Editor.Services.Translation.Views
 {
-    public class AiTranslateProviderView : BaseExtensionView
+    public class TranslateProviderView : BaseView
     {
-        private readonly I2LocAiTranslateExtensionManager _translateExtensionManager;
+        private readonly TranslateManager _translateManager;
         
         private bool _isShowAddMenu = false;
         private BaseTranslateProviderSettings _newTranslateProviderSettings;
-        public AiTranslateProviderView(EditorWindow owner, I2LocAiTranslateExtensionManager translateExtensionManager) : base(owner)
+        public TranslateProviderView(EditorWindow owner, TranslateManager translateManager) : base(owner)
         {
-            _translateExtensionManager = translateExtensionManager;
+            _translateManager = translateManager;
         }
         
-        public void Draw()
+        public override void Draw()
         {
             GUILayout.Label("Translate Provider Settings", EditorStyles.boldLabel);
             
@@ -55,7 +56,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
             var originalLabelWidth = EditorGUIUtility.labelWidth;
             
             EditorGUIUtility.labelWidth = UiTools.GetLabelWidth("Provider Type"); 
-            _newTranslateProviderSettings.TextProviderType = (AiTextProviderType)EditorGUILayout.EnumPopup("Provider Type", _newTranslateProviderSettings.TextProviderType,GUILayout.Width(200));
+            _newTranslateProviderSettings.ProviderType = (TextProviderType)EditorGUILayout.EnumPopup("Provider Type", _newTranslateProviderSettings.ProviderType,GUILayout.Width(200));
             
             EditorGUIUtility.labelWidth = UiTools.GetLabelWidth("Host"); 
             _newTranslateProviderSettings.Host = EditorGUILayout.TextField("Host", _newTranslateProviderSettings.Host,GUILayout.Width(250));
@@ -90,7 +91,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
             
             if (GUILayout.Button("Save"))
             {
-                _translateExtensionManager.AddTranslateProviderSettings(_newTranslateProviderSettings);
+                _translateManager.AddTranslateProviderSettings(_newTranslateProviderSettings);
                 _isShowAddMenu = false;
             }
 
@@ -99,7 +100,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
 
         private void DrawTranslateProviderList()
         {
-            var providers = _translateExtensionManager.GetTranslateProviderSettingsList();
+            var providers = _translateManager.GetTranslateProviderSettingsList();
             for (var i = 0; i < providers.Count; i++)
             {
                 var rowStyle = (i % 2 == 0) ? UiStyles.EvenRowStyle : UiStyles.OddRowStyle;
@@ -107,23 +108,23 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
 
                 EditorGUILayout.BeginHorizontal(rowStyle);
                 
-                EditorGUILayout.LabelField(provider.TextProviderType.ToString(), GUILayout.Width(100));
+                EditorGUILayout.LabelField(provider.ProviderType.ToString(), GUILayout.Width(100));
                 EditorGUILayout.LabelField(provider.Host, GUILayout.Width(200));
                 EditorGUILayout.LabelField(provider.Endpoint, GUILayout.Width(200));
                 EditorGUILayout.LabelField(provider.IsTokenFromFile ? "From File" : string.IsNullOrEmpty(provider.Token) ? "" : "*****", GUILayout.Width(200));
                 EditorGUILayout.LabelField(provider.Model, GUILayout.Width(200));
                 
-                var isSelected = _translateExtensionManager.SelectedTranslateProviderId == provider.Id;
+                var isSelected = _translateManager.SelectedTranslateProviderId == provider.Id;
 
                 if (GUILayout.Button("Select", isSelected? UiStyles.ButtonStyleGreen : EditorStyles.miniButton, GUILayout.Width(100)))
                 {
-                    _translateExtensionManager.SelectTranslateProviderSettings(provider);
+                    _translateManager.SelectTranslateProviderSettings(provider);
                 }
                 
                 if (GUILayout.Button("Remove", GUILayout.Width(100)))
                 {
                     var result = UiTools.DisplayRemoveProviderDialog();
-                    if (result) _translateExtensionManager.RemoveTranslateProviderSettings(provider);
+                    if (result) _translateManager.RemoveTranslateProviderSettings(provider);
                 }
 
                 GUILayout.FlexibleSpace();

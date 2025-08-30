@@ -12,7 +12,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.AiProviders.Settings
         public string  TokenFilePath { get; set; }
         public bool  IsTokenFromFile { get; set; }
         public string  Model { get; set; }
-        public AiTextProviderType TextProviderType { get; set; }
+        public TextProviderType ProviderType { get; set; }
 
         public bool IsTokenExist => !string.IsNullOrEmpty(Token) || !string.IsNullOrEmpty(TokenFilePath);
     }

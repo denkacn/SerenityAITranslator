@@ -1,9 +1,7 @@
 using System;
-using I2.Loc;
-using SerenityAITranslator.Editor.Services.Common.PromtFactories;
-using SerenityAITranslator.Editor.Services.Translation.Context;
-using SerenityAITranslator.Editor.Services.Translation.Managers;
+using SerenityAITranslator.Editor.Services.Common.Views;
 using SerenityAITranslator.Editor.Services.Translation.Views;
+using SerenityAITranslator.Editor.Tools;
 using UnityEditor;
 using UnityEngine;
 
@@ -12,16 +10,7 @@ namespace SerenityAITranslator.Editor.Windows
     [Serializable]
     public class SerenityAiWindow : EditorWindow
     {
-        private LanguageSourceAsset _languageSourceAsset;
-        private I2LocAiTranslateExtensionManager _translateExtensionManager;
-        private Vector2 _scrollPosition;
-        
-        private TranslateSettingsButtonView _translateSettingsButtonView;
-        private TranslationTermsView _translationTermsView;
-        private AiTranslateProviderView _aiTranslateProviderView;
-        private PromtView _promtView;
-
-        private bool _isShowSettingsMenu = true;
+        private MainView _selectedView;
         
         [MenuItem("Tools/Serenity AI Window")]
         public static void ShowWindow()
@@ -29,84 +18,35 @@ namespace SerenityAITranslator.Editor.Windows
             GetWindow<SerenityAiWindow>("Serenity AI Window");
         }
         
+        private void OnEnable()
+        {
+            _selectedView = new TranslateMainView(this);
+            _selectedView.Init();
+        }
+        
         private void OnGUI()
         {
+            GUILayout.Label("Serenity AI v0.12.2", EditorStyles.boldLabel);
             GUILayout.Space(10);
             
-            GUILayout.BeginHorizontal();
-            
-            _languageSourceAsset = (LanguageSourceAsset)EditorGUILayout.ObjectField(
-                "Language Source Asset",
-                _languageSourceAsset,
-                typeof(LanguageSourceAsset),
-                true);
-            
-            GUILayout.EndHorizontal();
-            
-            if (_languageSourceAsset == null) return;
-            
-            GUILayout.Space(10);
-            
-            //DrawSetupUI();
-            
-            if (_translateExtensionManager != null && _translateExtensionManager.IsContextSetup)
+            GUILayout.Label("Select Service:");
+            GUILayout.BeginHorizontal(UiStyles.OddRowStyle);
+
+            if (GUILayout.Button("Translate", GUILayout.Width(100), GUILayout.Height(30)))
             {
-                if (_isShowSettingsMenu)
+                if (_selectedView.GetType() != typeof(TranslateMainView))
                 {
-                    _aiTranslateProviderView?.Draw();
-                    _promtView?.Draw();
+                    _selectedView = new TranslateMainView(this);
+                    _selectedView.Init();
                 }
-                
-                GUILayout.Space(10);
-                
-                DrawTranslateUI();
-            }
-            else
-            {
-                DrawSetupUI();
-            }
-        }
-
-        private void DrawSetupUI()
-        {
-            GUILayout.BeginHorizontal();
-            
-            if (GUILayout.Button("Setup"))
-            {
-                Setup();
             }
             
+            GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
-        }
-
-        private void DrawTranslateUI()
-        {
-            if (GUILayout.Button(_isShowSettingsMenu? "Close Settings" : "Open Settings"))
-            {
-                _isShowSettingsMenu = !_isShowSettingsMenu;
-            }
-            
-            GUILayout.Label(new GUIContent(_translateExtensionManager.GetInfo()));
             
             GUILayout.Space(10);
             
-            _translateSettingsButtonView?.Draw();
-            
-            _translationTermsView?.Draw();
-        }
-
-        private void Setup()
-        {
-            var context = new I2LocAiExtensionContext();
-            context.BaseLanguage = "English";
-            context.PromtFactory = new PromtFactorySimple();
-            
-            _translateExtensionManager = new I2LocAiTranslateExtensionManager(_languageSourceAsset, context);
-            
-            _translateSettingsButtonView = new TranslateSettingsButtonView(this, _translateExtensionManager, _languageSourceAsset);
-            _translationTermsView = new TranslationTermsView(this, _translateExtensionManager, _languageSourceAsset);
-            _aiTranslateProviderView = new AiTranslateProviderView(this, _translateExtensionManager);
-            _promtView = new PromtView(this, _translateExtensionManager);
+            _selectedView?.Draw();
         }
     }
 }
