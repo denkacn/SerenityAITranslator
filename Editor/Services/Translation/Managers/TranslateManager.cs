@@ -49,6 +49,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
             _context = context;
 
             _availableLanguages = _sourceAssetProvider.GetLanguages();
+            Debug.Log(string.Join(";", _availableLanguages));
             
             SourceLanguage = _availableLanguages[0];
             DestinationLanguage = _availableLanguages[0];
@@ -77,12 +78,33 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
             }
         }
         
+        public void GetTranslationTermsByGroup(string group, string filter = null)
+        {
+            _translationsData.Clear();
+
+            var terms = _sourceAssetProvider.GetTerms(group);
+            var index = 0;
+            
+            foreach (var term in terms)
+            {
+                if (string.IsNullOrEmpty(term.Term)) continue;
+                if (filter != null && !term.Term.Contains(filter)) continue;
+
+                _translationsData.Add(new TranslatedRowData(index, term.Term,
+                    term.Languages[_availableLanguages.IndexOf(SourceLanguage)],
+                    term.Languages[_availableLanguages.IndexOf(DestinationLanguage)]));
+
+                index++;
+            }
+        }
+        
         public void TranslateAll(Action onCompleted)
         {
             if (_isTranslateAllStarted) return;
             
             _isTranslateAllStarted = true;
             _translateAllCancellationTokenSource = new CancellationTokenSource();
+            
             TranslateAllAsync(onCompleted, _translateAllCancellationTokenSource.Token).ConfigureAwait(false);
         }
 
@@ -104,7 +126,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
 
         #region Async Operations
 
-        public async Task TranslateOneAsync(TranslatedRowData translatedData, 
+        private async Task TranslateOneAsync(TranslatedRowData translatedData, 
             Action onCompleted,
             CancellationToken cancellationToken = default)
         {
@@ -141,31 +163,46 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
 
         #endregion
         
-        public bool ApplyChanges()
+        public void ApplyChanges(Action<bool> onCompleted)
         {
             var translationsData = GetTranslationsData();
-
+            var terms = _sourceAssetProvider.GetTerms();
+            var destinationLanguageIndex = _availableLanguages.IndexOf(DestinationLanguage);
+            
             foreach (var translationData in translationsData)
             {
                 if (string.IsNullOrEmpty(translationData.TranslatedText)) continue;
+                var term = terms.Find(t => t.Term == translationData.Term);
+                if (term == null) continue;
                 
-                _sourceAssetProvider.GetTerms().Find(t => t.Term == translationData.Term)
-                    .Languages[_availableLanguages.IndexOf(DestinationLanguage)] = translationData.TranslatedText;
+                if (term.Languages[destinationLanguageIndex] != translationData.TranslatedText)
+                {
+                    term.Languages[destinationLanguageIndex] = translationData.TranslatedText;
+                    term.IsUpdated = true;
+                }
             }
-
-            return true;
+            
+            _sourceAssetProvider.ApplyChanges(DestinationLanguage, onCompleted);
         }
 
-        public bool ApplyChange(TranslatedRowData translatedData)
+        public void ApplyChange(TranslatedRowData translatedData, Action<bool> onCompleted)
         {
-            if (string.IsNullOrEmpty(translatedData.TranslatedText)) return false;
+            if (string.IsNullOrEmpty(translatedData.TranslatedText))
+            {
+                onCompleted?.Invoke(false);
+                return;
+            }
             
-            _sourceAssetProvider.GetTerms().Find(t => t.Term == translatedData.Term)
-                .Languages[_availableLanguages.IndexOf(DestinationLanguage)] = translatedData.TranslatedText;
+            var terms = _sourceAssetProvider.GetTerms();
+            var term = terms.Find(t => t.Term == translatedData.Term);
+            var destinationLanguageIndex = _availableLanguages.IndexOf(DestinationLanguage);
+            
+            term.Languages[destinationLanguageIndex] = translatedData.TranslatedText;
+            term.IsUpdated = true;
             
             translatedData.OriginalText = translatedData.TranslatedText;
             
-            return true;
+            _sourceAssetProvider.ApplyChanges(DestinationLanguage, onCompleted);
         }
         
         public void RewertChange(TranslatedRowData translatedData)

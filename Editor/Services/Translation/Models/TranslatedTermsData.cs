@@ -4,5 +4,6 @@ namespace SerenityAITranslator.Editor.Services.Translation.Models
     {
         public string Term;
         public string[] Languages;
+        public bool IsUpdated;
     }
 }

@@ -81,12 +81,12 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
 
                         if (result)
                         {
-                            if (_translateManager.ApplyChanges())
+                            _translateManager.ApplyChanges(isOk =>
                             {
                                 EditorUtility.SetDirty(_sourceAssetProvider.GetAsset());
                                 
                                 AssetDatabase.SaveAssets();
-                            }
+                            });
                         }
                     }
                 }
@@ -105,15 +105,36 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
             
             EditorGUIUtility.labelWidth = _originalLabelWidth;
             
-            GUILayout.Space(20);
+            GUILayout.Space(10);
             
             if (GUILayout.Button("Apply Filter"))
             {
                 _translateManager.GetTranslationTerms(_filter);
             }
             
+            GUILayout.Space(20);
+            
+            GUILayout.Label("Groups:");
+            
+            if (GUILayout.Button("All"))
+            {
+                _translateManager.GetTranslationTerms();
+            }
+
+            GUILayout.Space(5);
+            
+            var groups = _sourceAssetProvider.GetGroups();
+            foreach (var group in groups)
+            {
+                if (GUILayout.Button(group))
+                {
+                    _translateManager.GetTranslationTermsByGroup(group);
+                }
+            }
+            
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
+            
             GUILayout.Space(10);
             GUILayout.EndVertical();
         }

@@ -71,7 +71,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
             
                 if (GUILayout.Button("Setup", GUILayout.Width(100)))
                 {
-                    if(_sourceAssetProvider != null && _sourceAssetProvider.GetAsset() != null)
+                    if(_sourceAssetProvider != null && _sourceAssetProvider.IsReady())
                         Setup();
                 }
             

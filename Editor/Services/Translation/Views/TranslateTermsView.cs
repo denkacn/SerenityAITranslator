@@ -114,11 +114,11 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
                         var addButtonContent = new GUIContent("A", "Apply Change");
                         if (GUILayout.Button(addButtonContent, GUILayout.Width(20)))
                         {
-                            if (_translateManager.ApplyChange(row))
+                            _translateManager.ApplyChange(row, isOk =>
                             {
                                 EditorUtility.SetDirty(_sourceAssetProvider.GetAsset());
                                 AssetDatabase.SaveAssets();
-                            }
+                            });
                         }
                         
                         var rewertButtonContent = new GUIContent("R", "Rewert Change");
