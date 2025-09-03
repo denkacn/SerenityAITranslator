@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using SerenityAITranslator.Editor.Services.Common.Views;
 using SerenityAITranslator.Editor.Services.Managers;
 using SerenityAITranslator.Editor.Services.Translation.Managers;
@@ -158,10 +159,12 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
             GUILayout.Space(10);
         }
         
-        private void Setup()
+        private async Task Setup()
         {
             _translateManager = _manager.TranslateManager; 
             _translateManager.SetSourceAssetProvider(_sourceAssetProvider);
+            
+            await _translateManager.Setup();
             
             //views
             _translateSettingsButtonView = new TranslateSettingsButtonView(_owner, _translateManager, _sourceAssetProvider);

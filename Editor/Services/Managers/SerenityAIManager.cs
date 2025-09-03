@@ -1,7 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using SerenityAITranslator.Editor.Services.Common.PromtFactories;
-using SerenityAITranslator.Editor.Services.Translation.Context;
 using SerenityAITranslator.Editor.Services.Translation.Managers;
 using SerenityAITranslator.Editor.Session.Models;
 using SerenityAITranslator.Editor.Session.Repositories;
@@ -28,8 +26,6 @@ namespace SerenityAITranslator.Editor.Services.Managers
                 await LoadOrCreateSessionAsync();
                 
                 _translateManager = new TranslateManager(_sessionRepository);
-                
-                await SetTranslateContext();
             
                 _window = EditorWindow.GetWindow<SerenityAiWindow>("Serenity AI Window");
                 _window.Init(this);
@@ -50,15 +46,6 @@ namespace SerenityAITranslator.Editor.Services.Managers
         private async Task LoadOrCreateSessionAsync()
         {
             await _sessionRepository.LoadSession();
-        }
-        
-        private async Task SetTranslateContext()
-        {
-            var context = new TranslatedContext();
-            context.BaseLanguage = "English";
-            context.PromtFactory = new PromtFactorySimple();
-            
-            await _translateManager.SetContext(context);
         }
     }
 }

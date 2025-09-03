@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using SerenityAITranslator.Editor.Services.Common.Models;
+using SerenityAITranslator.Editor.Services.Common.PromtFactories;
 using SerenityAITranslator.Editor.Services.Translation.AiProviders;
 using SerenityAITranslator.Editor.Services.Translation.AiProviders.Settings;
 using SerenityAITranslator.Editor.Services.Translation.Context;
@@ -23,7 +24,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
         
         private ISourceAssetProvider _sourceAssetProvider;
         private TranslatedContext _context;
-        private SessionRepository _sessionRepository;
+        private readonly SessionRepository _sessionRepository;
         
         private List<string> _availableLanguages;
         private readonly List<TranslatedRowData> _translationsData = new List<TranslatedRowData>();
@@ -48,22 +49,20 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
         {
             _sessionRepository = sessionRepository;
         }
-        
-        public async Task SetContext(TranslatedContext context)
+
+        public async Task Setup()
         {
-            _context = context;
+            _context = new TranslatedContext();
+            _context.BaseLanguage = "English";
+            _context.PromtFactory = new PromtFactorySimple();
             
             await LoadTranslateProviderSettings();
             await LoadPromtSettings();
-        }
-        
-        public void SetSourceAssetProvider(ISourceAssetProvider sourceAssetProvider)
-        {
-            _sourceAssetProvider = sourceAssetProvider;
+            
             _availableLanguages = _sourceAssetProvider.GetLanguages();
             
             Debug.Log(string.Join(";", _availableLanguages));
-
+            
             var translationSessionData = _sessionRepository.SessionData.TranslationSessionData;
             
             if (string.IsNullOrEmpty(translationSessionData.SourceLanguage))
@@ -82,6 +81,13 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
                     SelectTranslateProviderSettings(provider);
             }
         }
+        
+        public void SetSourceAssetProvider(ISourceAssetProvider sourceAssetProvider)
+        {
+            _sourceAssetProvider = sourceAssetProvider;
+        }
+
+        #region Translate
         
         public void GetTranslationTerms(string filter = null)
         {
@@ -152,6 +158,8 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
 
             _isTranslateAllStarted = false;
         }
+        
+        #endregion
 
         #region Async Operations
 
@@ -178,7 +186,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
             }
         }
         
-        public async Task TranslateAllAsync(Action onCompleted, CancellationToken cancellationToken = default)
+        private async Task TranslateAllAsync(Action onCompleted, CancellationToken cancellationToken = default)
         {
             var translationsData = GetTranslationsData();
 
@@ -193,6 +201,8 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
         }
 
         #endregion
+
+        #region Edit
         
         public void ApplyChanges(Action<bool> onCompleted)
         {
@@ -243,6 +253,10 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
         {
             translatedData.TranslatedText = translatedData.OriginalText;
         }
+        
+        #endregion
+
+        #region Translate Provider Settings
 
         public void AddTranslateProviderSettings(BaseTranslateProviderSettings translateProviderSettings)
         {
@@ -291,6 +305,10 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
             SaveSession();
         }
         
+        #endregion
+
+        #region Promt Settings
+        
         public void AddPromt(PromtSettingData promtData)
         {
             promtData.Id = Guid.NewGuid().ToString();
@@ -313,7 +331,9 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
 
             SaveSession();
         }
-
+        
+        #endregion
+        
         public string GetInfo()
         {
             if (_context == null) return string.Empty;
