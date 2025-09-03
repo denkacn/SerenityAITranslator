@@ -1,6 +1,7 @@
 using SerenityAITranslator.Editor.Services.Common.Views;
 using SerenityAITranslator.Editor.Services.Translation.Managers;
 using SerenityAITranslator.Editor.Services.Translation.SourceAssetProvider;
+using SerenityAITranslator.Editor.Session.Models;
 using SerenityAITranslator.Editor.Tools;
 using UnityEditor;
 using UnityEngine;
@@ -11,6 +12,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
     {
         private readonly TranslateManager _translateManager;
         private readonly ISourceAssetProvider _sourceAssetProvider;
+        
         private string _filter;
         private float _originalLabelWidth;
 
@@ -35,17 +37,18 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
             if (optionsArray.Length > 0)
             {
                 _originalLabelWidth = EditorGUIUtility.labelWidth;
-                EditorGUIUtility.labelWidth = UiTools.GetLabelWidth("Source"); 
-                var selectedSourceLanguageIndex = UiTools.GetIndexForValue(_translateManager.SourceLanguage, optionsArray);
+                EditorGUIUtility.labelWidth = UiTools.GetLabelWidth("Source");
+                var translationSessionData = _translateManager.SessionRepository.SessionData.TranslationSessionData;
+                var selectedSourceLanguageIndex = UiTools.GetIndexForValue(translationSessionData.SourceLanguage, optionsArray);
                 selectedSourceLanguageIndex = EditorGUILayout.Popup("Source", selectedSourceLanguageIndex, optionsArray,GUILayout.Width(300));
-                _translateManager.SourceLanguage = optionsArray[selectedSourceLanguageIndex];
+                translationSessionData.SourceLanguage = optionsArray[selectedSourceLanguageIndex];
                 
                 GUILayout.Space(20);
             
                 EditorGUIUtility.labelWidth = UiTools.GetLabelWidth("Destination"); 
-                var selectedDestinationLanguageIndex = UiTools.GetIndexForValue(_translateManager.DestinationLanguage, optionsArray);
+                var selectedDestinationLanguageIndex = UiTools.GetIndexForValue(translationSessionData.DestinationLanguage, optionsArray);
                 selectedDestinationLanguageIndex = EditorGUILayout.Popup("Destination", selectedDestinationLanguageIndex, optionsArray, GUILayout.Width(300));
-                _translateManager.DestinationLanguage = optionsArray[selectedDestinationLanguageIndex];
+                translationSessionData.DestinationLanguage = optionsArray[selectedDestinationLanguageIndex];
                 
                 EditorGUIUtility.labelWidth = _originalLabelWidth;
                 

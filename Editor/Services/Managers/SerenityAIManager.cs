@@ -24,9 +24,11 @@ namespace SerenityAITranslator.Editor.Services.Managers
             try
             {
                 _sessionRepository = new SessionRepository();
-                _translateManager = new TranslateManager();
-            
+                
                 await LoadOrCreateSessionAsync();
+                
+                _translateManager = new TranslateManager(_sessionRepository);
+                
                 await SetTranslateContext();
             
                 _window = EditorWindow.GetWindow<SerenityAiWindow>("Serenity AI Window");

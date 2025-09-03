@@ -1,9 +1,7 @@
 using System;
 using System.Linq;
-using SerenityAITranslator.Editor.Services.Common.PromtFactories;
 using SerenityAITranslator.Editor.Services.Common.Views;
 using SerenityAITranslator.Editor.Services.Managers;
-using SerenityAITranslator.Editor.Services.Translation.Context;
 using SerenityAITranslator.Editor.Services.Translation.Managers;
 using SerenityAITranslator.Editor.Services.Translation.SourceAssetProvider;
 using SerenityAITranslator.Editor.Tools;
@@ -28,8 +26,6 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
         private TranslatePromtView _translatePromtView;
 
         [SerializeField] private bool _isShowAssetProviderMenu = true;
-        [SerializeField] private bool _isShowSettingsMenu = true;
-        [SerializeField] private bool _isShowInfoMenu = true;
         
         public TranslateMainView(EditorWindow owner, ISerenityAIManager manager) : base(owner, manager){}
 
@@ -89,13 +85,15 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
                 
             GUILayout.BeginHorizontal(UiStyles.OddRowStyle);
             GUILayout.Label("Settings", UiStyles.LabelStyleCenter);
-            if (GUILayout.Button(_isShowSettingsMenu? "X" : "▼", GUILayout.Width(20), GUILayout.Height(20)))
+            var translationSessionData = _translateManager.SessionRepository.SessionData.TranslationSessionData;
+            if (GUILayout.Button(translationSessionData.IsShowSettingView? "X" : "▼", GUILayout.Width(20), GUILayout.Height(20)))
             {
-                _isShowSettingsMenu = !_isShowSettingsMenu;
+                translationSessionData.IsShowSettingView = !translationSessionData.IsShowSettingView;
+                _translateManager.SaveSession();
             }
             GUILayout.EndHorizontal();
             
-            if (_isShowSettingsMenu)
+            if (translationSessionData.IsShowSettingView)
             {
                 GUILayout.BeginVertical();
                 
@@ -116,13 +114,15 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
         {
             GUILayout.BeginHorizontal(UiStyles.OddRowStyle);
             GUILayout.Label("Info", UiStyles.LabelStyleCenter);
-            if (GUILayout.Button(_isShowInfoMenu? "X" : "▼", GUILayout.Width(20), GUILayout.Height(20)))
+            var translationSessionData = _translateManager.SessionRepository.SessionData.TranslationSessionData;
+            if (GUILayout.Button(translationSessionData.IsShowInfoView? "X" : "▼", GUILayout.Width(20), GUILayout.Height(20)))
             {
-                _isShowInfoMenu = !_isShowInfoMenu;
+                translationSessionData.IsShowInfoView = !translationSessionData.IsShowInfoView;
+                _translateManager.SaveSession();
             }
             GUILayout.EndHorizontal();
 
-            if (_isShowInfoMenu)
+            if (translationSessionData.IsShowInfoView)
             {
                 GUILayout.Label(new GUIContent(_translateManager.GetInfo()));
             }

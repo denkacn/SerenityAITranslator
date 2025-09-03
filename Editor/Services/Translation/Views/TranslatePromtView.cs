@@ -23,6 +23,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
             GUILayout.Label("Promt Settings", EditorStyles.boldLabel);
 
             DrawPromtList();
+            
             if (_isShowAddMenu) DrawAddPromt();
             
             if (!_isShowAddMenu)
@@ -82,7 +83,8 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
                 EditorGUILayout.LabelField(promtData.Name, UiStyles.LabelRowStyle, GUILayout.Width(200));
                 EditorGUILayout.LabelField(promtData.Promt, UiStyles.LabelRowStyle, GUILayout.Width(800));
 
-                var isSelected = _translateManager.SelectedPromt == promtData.Promt;
+                var isSelected = _translateManager.SessionRepository.SessionData.TranslationSessionData.SelectedPromt ==
+                                 promtData.Promt;
                 
                 if (GUILayout.Button("Select", isSelected? UiStyles.ButtonStyleGreen : EditorStyles.miniButton, GUILayout.Width(100)))
                 {

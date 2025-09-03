@@ -10,7 +10,7 @@ using Object = UnityEngine.Object;
 
 namespace SerenityAITranslator.Extension.Editor.Services.Translation.SourceAssetProvider
 {
-    [System.Serializable]
+    [Serializable]
     public class I2SourceAssetProvider : ISourceAssetProvider
     {
         [SerializeField] public LanguageSourceAsset LanguageSourceAsset;

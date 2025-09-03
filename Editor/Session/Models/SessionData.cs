@@ -4,6 +4,7 @@ namespace SerenityAITranslator.Editor.Session.Models
 {
     public class SessionData
     {
-        public SerenityServiceType ServiceType = SerenityServiceType.None;
+        public SerenityServiceType ServiceType { get; set; } = SerenityServiceType.None;
+        public TranslationSessionData TranslationSessionData { get; set; } = new TranslationSessionData();
     }
 }
