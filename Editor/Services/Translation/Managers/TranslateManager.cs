@@ -1,15 +1,14 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using SerenityAITranslator.Editor.Services.Common.Models;
 using SerenityAITranslator.Editor.Services.Translation.AiProviders;
 using SerenityAITranslator.Editor.Services.Translation.AiProviders.Settings;
 using SerenityAITranslator.Editor.Services.Translation.Context;
 using SerenityAITranslator.Editor.Services.Translation.Models;
 using SerenityAITranslator.Editor.Services.Translation.SourceAssetProvider;
+using SerenityAITranslator.Editor.Tools;
 using UnityEngine;
 
 namespace SerenityAITranslator.Editor.Services.Translation.Managers
@@ -18,11 +17,13 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
     {
         private const string DefaultPromt =
             "Translate fully the following into {0} and return ONLY the translations in the same format, be case-sensitive, consider line breaks, inside curly braces, with nothing else in the output:\n{1}";
+        private const string TranslateProviderSettingsFileName = "TranslateProviderSettings.json";
+        private const string PromtSettingsFileName = "PromtSettings.json";
         
-        private readonly ISourceAssetProvider _sourceAssetProvider;
-        private readonly TranslatedContext _context;
+        private ISourceAssetProvider _sourceAssetProvider;
+        private TranslatedContext _context;
         
-        private readonly List<string> _availableLanguages;
+        private List<string> _availableLanguages;
         private readonly List<TranslatedRowData> _translationsData = new List<TranslatedRowData>();
         private List<BaseTranslateProviderSettings> _translateProviderSettingsList = new List<BaseTranslateProviderSettings>();
         private List<PromtSettingData> _promtSettingsData = new List<PromtSettingData>();
@@ -43,19 +44,25 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
         public string SelectedTranslateProviderId => _context.TranslateSettings != null ? _context.TranslateSettings.Id : string.Empty;
         public bool IsTranslateAllStarted => _isTranslateAllStarted;
 
-        public TranslateManager(ISourceAssetProvider sourceAssetProvider, TranslatedContext context)
+        public TranslateManager(){}
+        
+        public async Task SetContext(TranslatedContext context)
+        {
+            _context = context;
+            
+            await LoadTranslateProviderSettings();
+            await LoadPromtSettings();
+        }
+        
+        public void SetSourceAssetProvider(ISourceAssetProvider sourceAssetProvider)
         {
             _sourceAssetProvider = sourceAssetProvider;
-            _context = context;
 
             _availableLanguages = _sourceAssetProvider.GetLanguages();
             Debug.Log(string.Join(";", _availableLanguages));
             
             SourceLanguage = _availableLanguages[0];
             DestinationLanguage = _availableLanguages[0];
-
-            LoadTranslateProviderSettings();
-            LoadPromtSettings();
         }
         
         public void GetTranslationTerms(string filter = null)
@@ -215,13 +222,13 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
             translateProviderSettings.Id = Guid.NewGuid().ToString();
             _translateProviderSettingsList.Add(translateProviderSettings);
 
-            SaveTranslateProviderSettings();
+            _ = SaveTranslateProviderSettings();
         }
         
         public void RemoveTranslateProviderSettings(BaseTranslateProviderSettings translateProviderSettings)
         {
             _translateProviderSettingsList.RemoveAll(a => a.Id == translateProviderSettings.Id);
-            SaveTranslateProviderSettings();
+            _ = SaveTranslateProviderSettings();
         }
         
         public void SelectTranslateProviderSettings(BaseTranslateProviderSettings provider)
@@ -256,13 +263,13 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
             promtData.Id = Guid.NewGuid().ToString();
             _promtSettingsData.Add(promtData);
             
-            SavePromtSettings();
+            _ = SavePromtSettings();
         }
         
         public void RemovePromt(PromtSettingData promtData)
         {
             _promtSettingsData.RemoveAll(a => a.Id == promtData.Id);
-            SavePromtSettings();
+            _ = SavePromtSettings();
         }
         
         public void SelectPromt(PromtSettingData promtData)
@@ -286,58 +293,30 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
 
         #region Save Load
 
-        private void SaveTranslateProviderSettings()
+        private async Task SaveTranslateProviderSettings()
         {
-            if (!Directory.Exists(Path.Combine(Application.dataPath, "Editor")))
-            {
-                Directory.CreateDirectory(Path.Combine(Application.dataPath, "Editor"));           
-            }
-            
-            var path = Path.Combine(Application.dataPath, "Editor", "TranslateProviderSettings.json");
-            var json = JsonConvert.SerializeObject(_translateProviderSettingsList, Formatting.Indented);
-            File.WriteAllText(path, json);
+            await FileDataManager.SaveJsonAsync(_translateProviderSettingsList, TranslateProviderSettingsFileName);
         }
 
-        private void LoadTranslateProviderSettings()
+        private async Task LoadTranslateProviderSettings()
         {
-            var path = Path.Combine(Application.dataPath, "Editor", "TranslateProviderSettings.json");
-
-            if (File.Exists(path))
-            {
-                var json = File.ReadAllText(path);
-                _translateProviderSettingsList = JsonConvert.DeserializeObject<List<BaseTranslateProviderSettings>>(json);
-            }
+            if (FileDataManager.FileExists(TranslateProviderSettingsFileName))
+                _translateProviderSettingsList = await FileDataManager.LoadJsonAsync<List<BaseTranslateProviderSettings>>(TranslateProviderSettingsFileName);
             else
-            {
                 _translateProviderSettingsList.Clear();
-            }
         }
         
-        private void SavePromtSettings()
+        private async Task SavePromtSettings()
         {
-            if (!Directory.Exists(Path.Combine(Application.dataPath, "Editor")))
-            {
-                Directory.CreateDirectory(Path.Combine(Application.dataPath, "Editor"));           
-            }
-            
-            var path = Path.Combine(Application.dataPath, "Editor", "PromtSettings.json");
-            var json = JsonConvert.SerializeObject(_promtSettingsData, Formatting.Indented);
-            File.WriteAllText(path, json);
+            await FileDataManager.SaveJsonAsync(_promtSettingsData, PromtSettingsFileName);
         }
 
-        private void LoadPromtSettings()
+        private async Task LoadPromtSettings()
         {
-            var path = Path.Combine(Application.dataPath, "Editor", "PromtSettings.json");
-
-            if (File.Exists(path))
-            {
-                var json = File.ReadAllText(path);
-                _promtSettingsData = JsonConvert.DeserializeObject<List<PromtSettingData>>(json);
-            }
+            if (FileDataManager.FileExists(PromtSettingsFileName))
+                _promtSettingsData = await FileDataManager.LoadJsonAsync<List<PromtSettingData>>(PromtSettingsFileName);
             else
-            {
                 _promtSettingsData.Clear();
-            }
         }
 
         #endregion

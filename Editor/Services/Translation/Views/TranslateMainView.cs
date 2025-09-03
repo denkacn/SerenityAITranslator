@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using SerenityAITranslator.Editor.Services.Common.PromtFactories;
 using SerenityAITranslator.Editor.Services.Common.Views;
+using SerenityAITranslator.Editor.Services.Managers;
 using SerenityAITranslator.Editor.Services.Translation.Context;
 using SerenityAITranslator.Editor.Services.Translation.Managers;
 using SerenityAITranslator.Editor.Services.Translation.SourceAssetProvider;
@@ -15,6 +16,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
     public class TranslateMainView : MainView
     {
         [SerializeReference] private ISourceAssetProvider _sourceAssetProvider;
+        
         private Type[] _providerTypes;
         
         private TranslateManager _translateManager;
@@ -29,7 +31,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
         [SerializeField] private bool _isShowSettingsMenu = true;
         [SerializeField] private bool _isShowInfoMenu = true;
         
-        public TranslateMainView(EditorWindow owner) : base(owner){}
+        public TranslateMainView(EditorWindow owner, ISerenityAIManager manager) : base(owner, manager){}
 
         public override void Init()
         {
@@ -71,7 +73,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
             
                 if (GUILayout.Button("Setup", GUILayout.Width(100)))
                 {
-                    if(_sourceAssetProvider != null && _sourceAssetProvider.IsReady())
+                    if (_sourceAssetProvider != null && _sourceAssetProvider.IsReady())
                         Setup();
                 }
             
@@ -158,11 +160,8 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
         
         private void Setup()
         {
-            var context = new TranslatedContext();
-            context.BaseLanguage = "English";
-            context.PromtFactory = new PromtFactorySimple();
-            
-            _translateManager = new TranslateManager(_sourceAssetProvider, context);
+            _translateManager = _manager.TranslateManager; 
+            _translateManager.SetSourceAssetProvider(_sourceAssetProvider);
             
             //views
             _translateSettingsButtonView = new TranslateSettingsButtonView(_owner, _translateManager, _sourceAssetProvider);
