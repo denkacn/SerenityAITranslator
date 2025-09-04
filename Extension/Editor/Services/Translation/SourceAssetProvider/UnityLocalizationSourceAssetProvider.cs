@@ -10,13 +10,14 @@ using Object = UnityEngine.Object;
 
 namespace SerenityAITranslator.Extension.Editor.Services.Translation.SourceAssetProvider
 {
-    public class UnityLocalizationSourceAssetProvider : ISourceAssetProvider
+    [CreateAssetMenu(menuName = "SerenityAI/Providers/UnityLocalizationSourceAssetProvider")]
+    public class UnityLocalizationSourceAssetProvider : ScriptableObject, ISourceAssetProvider
     {
-        private List<TranslatedTermsData> _translatedTermsData;
-        private List<string> _languages;
+        [SerializeField] public string TableName = "Test";
+        [SerializeField] public List<TranslatedTermsData> TranslatedTermsData;
+        [SerializeField] public List<string> Languages;
         
         private bool _isReady;
-        private string _tableName = "Test";
         
         public bool IsReady()
         {
@@ -27,11 +28,6 @@ namespace SerenityAITranslator.Extension.Editor.Services.Translation.SourceAsset
         {
             GUILayout.Label($"Is Provider Ready: {_isReady}");
             
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("Work Table Name: ", GUILayout.Width(120));
-            _tableName = GUILayout.TextField(_tableName);
-            GUILayout.EndHorizontal();
-            
             if (GUILayout.Button("Init Provider"))
             {
                 _ = InitProviderAsync().ConfigureAwait(false);
@@ -41,18 +37,18 @@ namespace SerenityAITranslator.Extension.Editor.Services.Translation.SourceAsset
         public List<string> GetLanguages()
         {
             var locales = LocalizationSettings.AvailableLocales.Locales;
-            _languages = locales.ConvertAll(x => x.LocaleName);
-            return _languages;
+            Languages = locales.ConvertAll(x => x.LocaleName);
+            return Languages;
         }
 
         public List<TranslatedTermsData> GetTerms()
         {
-            return _translatedTermsData;
+            return TranslatedTermsData;
         }
 
         public List<TranslatedTermsData> GetTerms(string group)
         {
-            return _translatedTermsData;
+            return TranslatedTermsData;
         }
 
         public Object GetAsset()
@@ -75,7 +71,7 @@ namespace SerenityAITranslator.Extension.Editor.Services.Translation.SourceAsset
             var init = LocalizationSettings.InitializationOperation;
             
             await init.Task;
-            await GetAllStringsForAllLocales(_tableName);
+            await GetAllStringsForAllLocales(TableName);
 
             _isReady = true;
         }
@@ -83,11 +79,11 @@ namespace SerenityAITranslator.Extension.Editor.Services.Translation.SourceAsset
         private async Task ApplyChangeAsync(string destinationLanguage, Action<bool> onCompleted)
         {
             var locale = LocalizationSettings.AvailableLocales.Locales.Find(l=>l.LocaleName == destinationLanguage);
-            var tableOp = LocalizationSettings.StringDatabase.GetTableAsync(_tableName, locale);
+            var tableOp = LocalizationSettings.StringDatabase.GetTableAsync(TableName, locale);
             var table = await tableOp.Task;
-            var destinationLanguageIndex = _languages.IndexOf(destinationLanguage);
+            var destinationLanguageIndex = Languages.IndexOf(destinationLanguage);
             
-            foreach (var termsData in _translatedTermsData)
+            foreach (var termsData in TranslatedTermsData)
             {
                 if (!termsData.IsUpdated) continue;
                 
@@ -114,7 +110,7 @@ namespace SerenityAITranslator.Extension.Editor.Services.Translation.SourceAsset
 
         private async Task GetAllStringsForAllLocales(string tableName)
         {
-            _translatedTermsData = new List<TranslatedTermsData>();
+            TranslatedTermsData = new List<TranslatedTermsData>();
             
             var translationsMap = new Dictionary<string, List<string>>();
             var locales = LocalizationSettings.AvailableLocales.Locales;
@@ -143,7 +139,7 @@ namespace SerenityAITranslator.Extension.Editor.Services.Translation.SourceAsset
 
             foreach (var kvp in translationsMap)
             {
-                _translatedTermsData.Add(new TranslatedTermsData
+                TranslatedTermsData.Add(new TranslatedTermsData
                 {
                     Term = kvp.Key,
                     Languages = kvp.Value.ToArray()

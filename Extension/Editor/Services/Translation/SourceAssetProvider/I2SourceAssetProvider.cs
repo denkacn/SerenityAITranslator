@@ -10,8 +10,8 @@ using Object = UnityEngine.Object;
 
 namespace SerenityAITranslator.Extension.Editor.Services.Translation.SourceAssetProvider
 {
-    [Serializable]
-    public class I2SourceAssetProvider : ISourceAssetProvider
+    [CreateAssetMenu(menuName = "SerenityAI/Providers/I2SourceAssetProvider")]
+    public class I2SourceAssetProvider : ScriptableObject, ISourceAssetProvider
     {
         [SerializeField] public LanguageSourceAsset LanguageSourceAsset;
         
@@ -26,19 +26,11 @@ namespace SerenityAITranslator.Extension.Editor.Services.Translation.SourceAsset
             return LanguageSourceAsset != null;
         }
 
-        public void OnDraw()
-        {
-            LanguageSourceAsset = (LanguageSourceAsset)EditorGUILayout.ObjectField(
-                "Language Source", 
-                LanguageSourceAsset, 
-                typeof(LanguageSourceAsset), 
-                false
-            );
-        }
+        public void OnDraw(){}
 
         public List<string> GetLanguages()
         {
-            if (_languages == null)
+            if (_languages == null || _languages.Count == 0)
             {
                 var languagesData = LanguageSourceAsset.SourceData.mLanguages;
                 _languages = languagesData.Select(language => language.Name).ToList();
@@ -84,28 +76,29 @@ namespace SerenityAITranslator.Extension.Editor.Services.Translation.SourceAsset
 
         private void CreateCacheData()
         {
-            if (_translatedTermsData != null) return;
-            
-            _translatedTermsByGroupsData = new Dictionary<string, List<TranslatedTermsData>>();
-            _translatedTermsData = new List<TranslatedTermsData>();
-            
-            var terms = LanguageSourceAsset.SourceData.mTerms;
-            
-            foreach (var termData in terms)
+            if (_translatedTermsData == null || _translatedTermsData.Count == 0)
             {
-                var category = LanguageSourceData.GetCategoryFromFullTerm(termData.Term);
-                var translatedTermData = new TranslatedTermsData()
+                _translatedTermsByGroupsData = new Dictionary<string, List<TranslatedTermsData>>();
+                _translatedTermsData = new List<TranslatedTermsData>();
+            
+                var terms = LanguageSourceAsset.SourceData.mTerms;
+            
+                foreach (var termData in terms)
                 {
-                    Term = termData.Term,
-                    Languages = termData.Languages,
-                };
+                    var category = LanguageSourceData.GetCategoryFromFullTerm(termData.Term);
+                    var translatedTermData = new TranslatedTermsData()
+                    {
+                        Term = termData.Term,
+                        Languages = termData.Languages,
+                    };
                 
-                _translatedTermsData.Add(translatedTermData);
+                    _translatedTermsData.Add(translatedTermData);
                     
-                if (_translatedTermsByGroupsData.ContainsKey(category))
-                    _translatedTermsByGroupsData[category].Add(translatedTermData);
-                else
-                    _translatedTermsByGroupsData.Add(category, new List<TranslatedTermsData>() {translatedTermData});   
+                    if (_translatedTermsByGroupsData.ContainsKey(category))
+                        _translatedTermsByGroupsData[category].Add(translatedTermData);
+                    else
+                        _translatedTermsByGroupsData.Add(category, new List<TranslatedTermsData>() {translatedTermData});   
+                }
             }
         }
     }

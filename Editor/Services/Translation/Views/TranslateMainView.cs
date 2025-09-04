@@ -13,9 +13,14 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
     public class TranslateMainView : MainView
     {
         [SerializeReference] private ISourceAssetProvider _sourceAssetProvider;
+        private SerializedObject _serializedProvider;
+        [SerializeField] private ScriptableObject _provider;
         
-        private Type[] _providerTypes;
         private Vector2 _scrollPosition;
+        
+        private ISourceAssetProvider[] _providers;
+        private string[] _providerNames;
+        private int _selectedIndex = 0;
         
         //views
         private TranslateSettingsButtonView _translateSettingsButtonView;
@@ -29,7 +34,10 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
 
         public override void Init()
         {
-            GetProviderTypes();
+            LoadProviders();
+            
+            if(_sourceAssetProvider != null && _sourceAssetProvider.IsReady())
+                Setup();
         }
 
         public override void Draw()
@@ -134,24 +142,49 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
 
         private void DrawSourceAssetProviderField()
         {
-            if (_providerTypes.Length == 0)
+            if (_providers == null || _providers.Length == 0)
             {
-                EditorGUILayout.HelpBox("There are no available implementations ISourceAssetProvider", MessageType.Warning);
+                if (GUILayout.Button("Reload Providers"))
+                    LoadProviders();
+                
                 return;
             }
-            
-            var currentIndex = Array.IndexOf(_providerTypes, _sourceAssetProvider?.GetType());
-            if (currentIndex < 0) currentIndex = 0;
 
-            var options = _providerTypes.Select(t => t.Name).ToArray();
-            var newIndex = EditorGUILayout.Popup("Provider Type", currentIndex, options);
+            _selectedIndex = EditorGUILayout.Popup("Active Provider", _selectedIndex, _providerNames);
+            _sourceAssetProvider = _providers[_selectedIndex];
+
+            if (_sourceAssetProvider != null) _sourceAssetProvider.OnDraw();
+
+            var scriptableSourceAssetProvider = (ScriptableObject)_sourceAssetProvider;
             
-            if (newIndex != currentIndex || _sourceAssetProvider == null)
+            if (scriptableSourceAssetProvider != _provider)
             {
-                _sourceAssetProvider = (ISourceAssetProvider)Activator.CreateInstance(_providerTypes[newIndex]);
+                _provider = scriptableSourceAssetProvider;
+                _serializedProvider = _sourceAssetProvider != null ? new SerializedObject(scriptableSourceAssetProvider) : null;
+                
+                Setup();
             }
             
-            _sourceAssetProvider?.OnDraw();
+            if (_provider is ISourceAssetProvider && _serializedProvider != null)
+            {
+                _serializedProvider.Update();
+
+                var iterator = _serializedProvider.GetIterator();
+                var enterChildren = true;
+
+                while (iterator.NextVisible(enterChildren))
+                {
+                    enterChildren = false;
+                    if (iterator.propertyPath == "m_Script") continue; 
+                    EditorGUILayout.PropertyField(iterator, true);
+                }
+
+                _serializedProvider.ApplyModifiedProperties();
+            }
+            else if (_provider != null)
+            {
+                EditorGUILayout.HelpBox("Объект не реализует ISourceAssetProvider", MessageType.Error);
+            }
             
             GUILayout.Space(10);
         }
@@ -168,14 +201,17 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
             _translatePromtView = new TranslatePromtView(_owner, _context);
         }
         
-        private void GetProviderTypes()
+        private void LoadProviders()
         {
-            _providerTypes = AppDomain.CurrentDomain
-                .GetAssemblies()
-                .SelectMany(a => a.GetTypes())
-                .Where(t => typeof(ISourceAssetProvider).IsAssignableFrom(t) 
-                            && !t.IsInterface 
-                            && !t.IsAbstract)
+            string[] guids = AssetDatabase.FindAssets("t:ScriptableObject");
+
+            _providers = guids
+                .Select(g => AssetDatabase.LoadAssetAtPath<ScriptableObject>(AssetDatabase.GUIDToAssetPath(g)))
+                .OfType<ISourceAssetProvider>()
+                .ToArray();
+
+            _providerNames = _providers
+                .Select(p => ((ScriptableObject)p).name)
                 .ToArray();
         }
     }
