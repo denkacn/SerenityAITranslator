@@ -1,8 +1,8 @@
 using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
+using SerenityAITranslator.Editor.Context;
 using SerenityAITranslator.Editor.Services.Common.Views;
-using SerenityAITranslator.Editor.Services.Managers;
 using SerenityAITranslator.Editor.Services.Voice.AiProviders;
 using SerenityAITranslator.Editor.Services.Voice.Converters;
 using UnityEditor;
@@ -12,7 +12,7 @@ namespace SerenityAITranslator.Editor.Services.Voice.Views
 {
     public class VoiceMainView : MainView
     {
-        public VoiceMainView(EditorWindow owner, ISerenityAIManager manager) : base(owner, manager)
+        public VoiceMainView(EditorWindow owner, SerenityContext context) : base(owner, context)
         {
             
         }

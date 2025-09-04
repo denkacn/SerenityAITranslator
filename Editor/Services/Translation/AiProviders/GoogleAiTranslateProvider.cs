@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using SerenityAITranslator.Editor.Services.Common.PromtFactories;
-using SerenityAITranslator.Editor.Services.Translation.AiProviders.Settings;
+using SerenityAITranslator.Editor.Services.Translation.Collections;
 using SerenityAITranslator.Editor.Services.Translation.Models;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -10,7 +10,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.AiProviders
 {
     public class GoogleAiTranslateProvider : BaseTranslateProvider
     {
-        public override async Task<TranslatedData> GetTranslate(TranslatedPromtData promtData, BaseTranslateProviderSettings settings, PromtFactoryBase promtFactory)
+        public override async Task<TranslatedData> GetTranslate(TranslatedPromtData promtData, TranslateProviderConfigurationItem settings, PromtFactoryBase promtFactory)
         {
             var apiKey = await GetToken(settings);
             var url = $"{string.Concat(settings.Host, settings.Endpoint)}{settings.Model}:generateContent";

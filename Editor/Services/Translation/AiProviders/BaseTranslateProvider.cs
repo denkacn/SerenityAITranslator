@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using SerenityAITranslator.Editor.Services.Common.PromtFactories;
-using SerenityAITranslator.Editor.Services.Translation.AiProviders.Settings;
+using SerenityAITranslator.Editor.Services.Translation.Collections;
 using SerenityAITranslator.Editor.Services.Translation.Models;
 using UnityEngine;
 
@@ -11,9 +11,9 @@ namespace SerenityAITranslator.Editor.Services.Translation.AiProviders
     public abstract class BaseTranslateProvider : IAiTranslateProvider
     {
         public abstract Task<TranslatedData> GetTranslate(TranslatedPromtData promtData,
-            BaseTranslateProviderSettings settings, PromtFactoryBase promtFactory);
+            TranslateProviderConfigurationItem settings, PromtFactoryBase promtFactory);
 
-        protected async Task<string> GetToken(BaseTranslateProviderSettings settings)
+        protected async Task<string> GetToken(TranslateProviderConfigurationItem settings)
         {
             if (!settings.IsTokenFromFile || string.IsNullOrEmpty(settings.TokenFilePath)) return settings.Token;
     

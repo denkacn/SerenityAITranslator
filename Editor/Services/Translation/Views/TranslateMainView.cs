@@ -1,9 +1,7 @@
 using System;
 using System.Linq;
-using System.Threading.Tasks;
+using SerenityAITranslator.Editor.Context;
 using SerenityAITranslator.Editor.Services.Common.Views;
-using SerenityAITranslator.Editor.Services.Managers;
-using SerenityAITranslator.Editor.Services.Translation.Managers;
 using SerenityAITranslator.Editor.Services.Translation.SourceAssetProvider;
 using SerenityAITranslator.Editor.Tools;
 using UnityEditor;
@@ -17,10 +15,9 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
         [SerializeReference] private ISourceAssetProvider _sourceAssetProvider;
         
         private Type[] _providerTypes;
-        
-        private TranslateManager _translateManager;
         private Vector2 _scrollPosition;
         
+        //views
         private TranslateSettingsButtonView _translateSettingsButtonView;
         private TranslateTermsView _translateTermsView;
         private TranslateProviderView _translateProviderView;
@@ -28,7 +25,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
 
         [SerializeField] private bool _isShowAssetProviderMenu = true;
         
-        public TranslateMainView(EditorWindow owner, ISerenityAIManager manager) : base(owner, manager){}
+        public TranslateMainView(EditorWindow owner, SerenityContext context) : base(owner, context){}
 
         public override void Init()
         {
@@ -39,9 +36,9 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
         {
             DrawSourceAssetProvider();
             
-            if(_translateManager == null) return;
+            if(_context.TranslateManager == null) return;
             
-            if (_translateManager != null && _translateManager.IsContextSetup)
+            if (_context.TranslateManager != null && _context.TranslateManager.IsContextSetup)
             {
                 DrawTranslateProvider();
                 
@@ -86,11 +83,11 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
                 
             GUILayout.BeginHorizontal(UiStyles.OddRowStyle);
             GUILayout.Label("Settings", UiStyles.LabelStyleCenter);
-            var translationSessionData = _translateManager.SessionRepository.SessionData.TranslationSessionData;
+            var translationSessionData = _context.SessionData.TranslationSessionData;
             if (GUILayout.Button(translationSessionData.IsShowSettingView? "X" : "▼", GUILayout.Width(20), GUILayout.Height(20)))
             {
                 translationSessionData.IsShowSettingView = !translationSessionData.IsShowSettingView;
-                _translateManager.SaveSession();
+                _context.Save();
             }
             GUILayout.EndHorizontal();
             
@@ -115,17 +112,17 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
         {
             GUILayout.BeginHorizontal(UiStyles.OddRowStyle);
             GUILayout.Label("Info", UiStyles.LabelStyleCenter);
-            var translationSessionData = _translateManager.SessionRepository.SessionData.TranslationSessionData;
+            var translationSessionData = _context.SessionData.TranslationSessionData;
             if (GUILayout.Button(translationSessionData.IsShowInfoView? "X" : "▼", GUILayout.Width(20), GUILayout.Height(20)))
             {
                 translationSessionData.IsShowInfoView = !translationSessionData.IsShowInfoView;
-                _translateManager.SaveSession();
+                _context.Save();
             }
             GUILayout.EndHorizontal();
 
             if (translationSessionData.IsShowInfoView)
             {
-                GUILayout.Label(new GUIContent(_translateManager.GetInfo()));
+                GUILayout.Label(new GUIContent(_context.TranslateManager.GetInfo()));
             }
             
             GUILayout.Space(10);
@@ -159,18 +156,16 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
             GUILayout.Space(10);
         }
         
-        private async Task Setup()
+        private void Setup()
         {
-            _translateManager = _manager.TranslateManager; 
-            _translateManager.SetSourceAssetProvider(_sourceAssetProvider);
-            
-            await _translateManager.Setup();
+            _context.TranslateManager.SetSourceAssetProvider(_sourceAssetProvider);
+            _context.TranslateManager.Setup();
             
             //views
-            _translateSettingsButtonView = new TranslateSettingsButtonView(_owner, _translateManager, _sourceAssetProvider);
-            _translateTermsView = new TranslateTermsView(_owner, _translateManager, _sourceAssetProvider);
-            _translateProviderView = new TranslateProviderView(_owner, _translateManager);
-            _translatePromtView = new TranslatePromtView(_owner, _translateManager);
+            _translateSettingsButtonView = new TranslateSettingsButtonView(_owner, _sourceAssetProvider, _context);
+            _translateTermsView = new TranslateTermsView(_owner, _sourceAssetProvider, _context);
+            _translateProviderView = new TranslateProviderView(_owner, _context);
+            _translatePromtView = new TranslatePromtView(_owner, _context);
         }
         
         private void GetProviderTypes()

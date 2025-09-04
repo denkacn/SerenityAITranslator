@@ -1,10 +1,13 @@
+using System;
 using SerenityAITranslator.Editor.Services.Common.Enums;
+using UnityEngine;
 
 namespace SerenityAITranslator.Editor.Session.Models
 {
-    public class SessionData
+    [Serializable]
+    public class SessionData : ScriptableObject
     {
-        public SerenityServiceType ServiceType { get; set; } = SerenityServiceType.None;
-        public TranslationSessionData TranslationSessionData { get; set; } = new TranslationSessionData();
+        public SerenityServiceType ServiceType = SerenityServiceType.None;
+        public TranslationSessionData TranslationSessionData = new TranslationSessionData();
     }
 }

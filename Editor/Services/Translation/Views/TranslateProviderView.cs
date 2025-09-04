@@ -1,7 +1,8 @@
+using System;
+using SerenityAITranslator.Editor.Context;
 using SerenityAITranslator.Editor.Services.Common.Views;
 using SerenityAITranslator.Editor.Services.Translation.AiProviders;
-using SerenityAITranslator.Editor.Services.Translation.AiProviders.Settings;
-using SerenityAITranslator.Editor.Services.Translation.Managers;
+using SerenityAITranslator.Editor.Services.Translation.Collections;
 using SerenityAITranslator.Editor.Tools;
 using UnityEditor;
 using UnityEngine;
@@ -10,14 +11,9 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
 {
     public class TranslateProviderView : BaseView
     {
-        private readonly TranslateManager _translateManager;
-        
         private bool _isShowAddMenu = false;
-        private BaseTranslateProviderSettings _newTranslateProviderSettings;
-        public TranslateProviderView(EditorWindow owner, TranslateManager translateManager) : base(owner)
-        {
-            _translateManager = translateManager;
-        }
+        private TranslateProviderConfigurationItem _newTranslateProviderSettings;
+        public TranslateProviderView(EditorWindow owner, SerenityContext context) : base(owner, context){}
         
         public override void Draw()
         {
@@ -34,7 +30,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
             {
                 if (GUILayout.Button("Add Provider"))
                 {
-                    _newTranslateProviderSettings = new BaseTranslateProviderSettings();
+                    _newTranslateProviderSettings = new TranslateProviderConfigurationItem();
                     _isShowAddMenu = true;
                 }
             }
@@ -91,7 +87,9 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
             
             if (GUILayout.Button("Save"))
             {
-                _translateManager.AddTranslateProviderSettings(_newTranslateProviderSettings);
+                _newTranslateProviderSettings.Id = Guid.NewGuid().ToString();
+                _context.TranslateProvidersConfigurations.Providers.Add(_newTranslateProviderSettings);
+                _context.Save();
                 _isShowAddMenu = false;
             }
 
@@ -100,7 +98,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
 
         private void DrawTranslateProviderList()
         {
-            var providers = _translateManager.GetTranslateProviderSettingsList();
+            var providers = _context.TranslateProvidersConfigurations.Providers;
             for (var i = 0; i < providers.Count; i++)
             {
                 var rowStyle = (i % 2 == 0) ? UiStyles.EvenRowStyle : UiStyles.OddRowStyle;
@@ -114,17 +112,21 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
                 EditorGUILayout.LabelField(provider.IsTokenFromFile ? "From File" : string.IsNullOrEmpty(provider.Token) ? "" : "*****", GUILayout.Width(200));
                 EditorGUILayout.LabelField(provider.Model, GUILayout.Width(200));
                 
-                var isSelected = _translateManager.SelectedTranslateProviderId == provider.Id;
+                var isSelected = _context.TranslateManager.SelectedTranslateProviderId == provider.Id;
 
                 if (GUILayout.Button("Select", isSelected? UiStyles.ButtonStyleGreen : EditorStyles.miniButton, GUILayout.Width(100)))
                 {
-                    _translateManager.SelectTranslateProviderSettings(provider);
+                    _context.TranslateManager.SelectTranslateProviderSettings(provider);
                 }
                 
                 if (GUILayout.Button("Remove", GUILayout.Width(100)))
                 {
                     var result = UiTools.DisplayRemoveProviderDialog();
-                    if (result) _translateManager.RemoveTranslateProviderSettings(provider);
+                    if (result)
+                    {
+                        _context.TranslateProvidersConfigurations.Providers.Remove(provider);
+                        _context.Save();
+                    }
                 }
 
                 GUILayout.FlexibleSpace();

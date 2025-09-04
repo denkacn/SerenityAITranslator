@@ -1,17 +1,13 @@
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using SerenityAITranslator.Editor.Services.Common.Models;
+using SerenityAITranslator.Editor.Context;
+using SerenityAITranslator.Editor.Services.Common.Collections;
 using SerenityAITranslator.Editor.Services.Common.PromtFactories;
 using SerenityAITranslator.Editor.Services.Translation.AiProviders;
-using SerenityAITranslator.Editor.Services.Translation.AiProviders.Settings;
-using SerenityAITranslator.Editor.Services.Translation.Context;
+using SerenityAITranslator.Editor.Services.Translation.Collections;
 using SerenityAITranslator.Editor.Services.Translation.Models;
 using SerenityAITranslator.Editor.Services.Translation.SourceAssetProvider;
-using SerenityAITranslator.Editor.Session.Repositories;
-using SerenityAITranslator.Editor.Tools;
-using UnityEngine;
 
 namespace SerenityAITranslator.Editor.Services.Translation.Managers
 {
@@ -19,64 +15,42 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
     {
         private const string DefaultPromt =
             "Translate fully the following into {0} and return ONLY the translations in the same format, be case-sensitive, consider line breaks, inside curly braces, with nothing else in the output:\n{1}";
-        private const string TranslateProviderSettingsFileName = "TranslateProviderSettings.json";
-        private const string PromtSettingsFileName = "PromtSettings.json";
         
-        private ISourceAssetProvider _sourceAssetProvider;
-        private TranslatedContext _context;
-        private readonly SessionRepository _sessionRepository;
-        
-        private List<string> _availableLanguages;
-        private readonly List<TranslatedRowData> _translationsData = new List<TranslatedRowData>();
-        private List<BaseTranslateProviderSettings> _translateProviderSettingsList = new List<BaseTranslateProviderSettings>();
-        private List<PromtSettingData> _promtSettingsData = new List<PromtSettingData>();
+        private readonly SerenityContext _context;
         private CancellationTokenSource _translateAllCancellationTokenSource = new CancellationTokenSource();
 
         private bool _isTranslateAllStarted = false;
         
-        public List<string> GetAvailableLanguages() => _availableLanguages;
-        public List<TranslatedRowData> GetTranslationsData() => _translationsData;
-        public List<BaseTranslateProviderSettings> GetTranslateProviderSettingsList() => _translateProviderSettingsList;
-        public List<PromtSettingData> GetPromtSettingsData() => _promtSettingsData;
-        
         public bool IsContextSetup => _context != null;
-        public bool IsTranslateProviderAndTranslateSettingSetup => _context != null && _context.TranslateProvider != null && _context.TranslateSettings != null;
-        public string SelectedTranslateProviderId => _context.TranslateSettings != null ? _context.TranslateSettings.Id : string.Empty;
+        public bool IsTranslateProviderAndTranslateSettingSetup => _context != null && _context.SessionData.TranslationSessionData.TranslateProvider != null && _context.SessionData.TranslationSessionData.TranslateSettings != null;
+        public string SelectedTranslateProviderId => _context.SessionData.TranslationSessionData.TranslateSettings != null ? _context.SessionData.TranslationSessionData.TranslateSettings.Id : string.Empty;
         public bool IsTranslateAllStarted => _isTranslateAllStarted;
-        public SessionRepository SessionRepository => _sessionRepository;
 
-        public TranslateManager(SessionRepository sessionRepository)
+        public TranslateManager(SerenityContext context)
         {
-            _sessionRepository = sessionRepository;
+            _context = context;
+            
+            _context.SessionData.TranslationSessionData.BaseLanguage = "English";
+            _context.SessionData.TranslationSessionData.PromtFactory = new PromtFactorySimple();
         }
 
-        public async Task Setup()
+        public void Setup()
         {
-            _context = new TranslatedContext();
-            _context.BaseLanguage = "English";
-            _context.PromtFactory = new PromtFactorySimple();
-            
-            await LoadTranslateProviderSettings();
-            await LoadPromtSettings();
-            
-            _availableLanguages = _sourceAssetProvider.GetLanguages();
-            
-            Debug.Log(string.Join(";", _availableLanguages));
-            
-            var translationSessionData = _sessionRepository.SessionData.TranslationSessionData;
+            var translationSessionData = _context.SessionData.TranslationSessionData;
+            translationSessionData.AvailableLanguages = translationSessionData.SourceAssetProvider.GetLanguages();
             
             if (string.IsNullOrEmpty(translationSessionData.SourceLanguage))
-                translationSessionData.SourceLanguage = _availableLanguages[0];
+                translationSessionData.SourceLanguage = translationSessionData.AvailableLanguages[0];
             
             if (string.IsNullOrEmpty(translationSessionData.DestinationLanguage))
-                translationSessionData.DestinationLanguage = _availableLanguages[0];
+                translationSessionData.DestinationLanguage = translationSessionData.AvailableLanguages[0];
 
             if (string.IsNullOrEmpty(translationSessionData.SelectedPromt))
                 translationSessionData.SelectedPromt = DefaultPromt;
 
             if (!string.IsNullOrEmpty(translationSessionData.ProviderId))
             {
-                var provider = _translateProviderSettingsList.Find(a => a.Id == translationSessionData.ProviderId);
+                var provider = _context.TranslateProvidersConfigurations.Providers.Find(a => a.Id == translationSessionData.ProviderId);
                 if (provider != null)
                     SelectTranslateProviderSettings(provider);
             }
@@ -84,27 +58,29 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
         
         public void SetSourceAssetProvider(ISourceAssetProvider sourceAssetProvider)
         {
-            _sourceAssetProvider = sourceAssetProvider;
+            _context.SessionData.TranslationSessionData.SourceAssetProvider = sourceAssetProvider;
         }
 
         #region Translate
         
         public void GetTranslationTerms(string filter = null)
         {
-            _translationsData.Clear();
+            var translationSessionData = _context.SessionData.TranslationSessionData;
+            var translationsData = translationSessionData.TranslationsData;
+            translationsData.Clear();
 
-            var terms = _sourceAssetProvider.GetTerms();
-            var translationSessionData = _sessionRepository.SessionData.TranslationSessionData;
+            var terms = translationSessionData.SourceAssetProvider.GetTerms();
+            
             var index = 0;
             
             foreach (var term in terms)
             {
                 if (string.IsNullOrEmpty(term.Term)) continue;
                 if (filter != null && !term.Term.Contains(filter)) continue;
-
-                _translationsData.Add(new TranslatedRowData(index, term.Term,
-                    term.Languages[_availableLanguages.IndexOf(translationSessionData.SourceLanguage)],
-                    term.Languages[_availableLanguages.IndexOf(translationSessionData.DestinationLanguage)]));
+                
+                translationsData.Add(new TranslatedRowData(index, term.Term,
+                    term.Languages[translationSessionData.AvailableLanguages.IndexOf(translationSessionData.SourceLanguage)],
+                    term.Languages[translationSessionData.AvailableLanguages.IndexOf(translationSessionData.DestinationLanguage)]));
 
                 index++;
             }
@@ -114,10 +90,12 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
         
         public void GetTranslationTermsByGroup(string group, string filter = null)
         {
-            _translationsData.Clear();
+            var translationSessionData = _context.SessionData.TranslationSessionData;
+            var translationsData = translationSessionData.TranslationsData;
+            
+            translationsData.Clear();
 
-            var terms = _sourceAssetProvider.GetTerms(group);
-            var translationSessionData = _sessionRepository.SessionData.TranslationSessionData;
+            var terms = translationSessionData.SourceAssetProvider.GetTerms(group);
             var index = 0;
             
             foreach (var term in terms)
@@ -125,9 +103,9 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
                 if (string.IsNullOrEmpty(term.Term)) continue;
                 if (filter != null && !term.Term.Contains(filter)) continue;
 
-                _translationsData.Add(new TranslatedRowData(index, term.Term,
-                    term.Languages[_availableLanguages.IndexOf(translationSessionData.SourceLanguage)],
-                    term.Languages[_availableLanguages.IndexOf(translationSessionData.DestinationLanguage)]));
+                translationsData.Add(new TranslatedRowData(index, term.Term,
+                    term.Languages[translationSessionData.AvailableLanguages.IndexOf(translationSessionData.SourceLanguage)],
+                    term.Languages[translationSessionData.AvailableLanguages.IndexOf(translationSessionData.DestinationLanguage)]));
 
                 index++;
             }
@@ -167,7 +145,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
             Action onCompleted,
             CancellationToken cancellationToken = default)
         {
-            var translationSessionData = _sessionRepository.SessionData.TranslationSessionData;
+            var translationSessionData = _context.SessionData.TranslationSessionData;
             
             var promtData = new TranslatedPromtData(
                 translatedData.Term, 
@@ -175,8 +153,8 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
                 translatedData.SourceText,
                 string.IsNullOrEmpty(translationSessionData.SelectedPromt) ? DefaultPromt : translationSessionData.SelectedPromt);
 
-            var result = await _context.TranslateProvider
-                .GetTranslate(promtData, _context.TranslateSettings, _context.PromtFactory);
+            var result = await translationSessionData.TranslateProvider
+                .GetTranslate(promtData, translationSessionData.TranslateSettings, translationSessionData.PromtFactory);
 
             if (!cancellationToken.IsCancellationRequested && result.IsNoError)
             {
@@ -188,7 +166,8 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
         
         private async Task TranslateAllAsync(Action onCompleted, CancellationToken cancellationToken = default)
         {
-            var translationsData = GetTranslationsData();
+            var translationSessionData = _context.SessionData.TranslationSessionData;
+            var translationsData = translationSessionData.TranslationsData;
 
             foreach (var translationData in translationsData)
             {
@@ -206,11 +185,11 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
         
         public void ApplyChanges(Action<bool> onCompleted)
         {
-            var translationSessionData = _sessionRepository.SessionData.TranslationSessionData;
+            var translationSessionData = _context.SessionData.TranslationSessionData;
             
-            var translationsData = GetTranslationsData();
-            var terms = _sourceAssetProvider.GetTerms();
-            var destinationLanguageIndex = _availableLanguages.IndexOf(translationSessionData.DestinationLanguage);
+            var translationsData = translationSessionData.TranslationsData;
+            var terms = translationSessionData.SourceAssetProvider.GetTerms();
+            var destinationLanguageIndex = translationSessionData.AvailableLanguages.IndexOf(translationSessionData.DestinationLanguage);
             
             foreach (var translationData in translationsData)
             {
@@ -225,7 +204,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
                 }
             }
             
-            _sourceAssetProvider.ApplyChanges(translationSessionData.DestinationLanguage, onCompleted);
+            translationSessionData.SourceAssetProvider.ApplyChanges(translationSessionData.DestinationLanguage, onCompleted);
         }
 
         public void ApplyChange(TranslatedRowData translatedData, Action<bool> onCompleted)
@@ -236,17 +215,17 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
                 return;
             }
             
-            var translationSessionData = _sessionRepository.SessionData.TranslationSessionData;
-            var terms = _sourceAssetProvider.GetTerms();
+            var translationSessionData = _context.SessionData.TranslationSessionData;
+            var terms = translationSessionData.SourceAssetProvider.GetTerms();
             var term = terms.Find(t => t.Term == translatedData.Term);
-            var destinationLanguageIndex = _availableLanguages.IndexOf(translationSessionData.DestinationLanguage);
+            var destinationLanguageIndex = translationSessionData.AvailableLanguages.IndexOf(translationSessionData.DestinationLanguage);
             
             term.Languages[destinationLanguageIndex] = translatedData.TranslatedText;
             term.IsUpdated = true;
             
             translatedData.OriginalText = translatedData.TranslatedText;
             
-            _sourceAssetProvider.ApplyChanges(translationSessionData.DestinationLanguage, onCompleted);
+            translationSessionData.SourceAssetProvider.ApplyChanges(translationSessionData.DestinationLanguage, onCompleted);
         }
         
         public void RewertChange(TranslatedRowData translatedData)
@@ -257,46 +236,31 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
         #endregion
 
         #region Translate Provider Settings
-
-        public void AddTranslateProviderSettings(BaseTranslateProviderSettings translateProviderSettings)
-        {
-            translateProviderSettings.Id = Guid.NewGuid().ToString();
-            _translateProviderSettingsList.Add(translateProviderSettings);
-
-            _ = SaveTranslateProviderSettings();
-        }
         
-        public void RemoveTranslateProviderSettings(BaseTranslateProviderSettings translateProviderSettings)
+        public void SelectTranslateProviderSettings(TranslateProviderConfigurationItem provider)
         {
-            _translateProviderSettingsList.RemoveAll(a => a.Id == translateProviderSettings.Id);
-            _ = SaveTranslateProviderSettings();
-        }
-        
-        public void SelectTranslateProviderSettings(BaseTranslateProviderSettings provider)
-        {
-            var translationSessionData = _sessionRepository.SessionData.TranslationSessionData;
+            var translationSessionData = _context.SessionData.TranslationSessionData;
             translationSessionData.ProviderId = provider.Id;
-            
-            _context.TranslateSettings = provider;
+            translationSessionData.TranslateSettings = provider;
             
             switch (provider.ProviderType)
             {
                 case TextProviderType.None:
                     break;
                 case TextProviderType.LmStudio:
-                    _context.TranslateProvider = new LmStudioTranslateProvider();
+                    translationSessionData.TranslateProvider = new LmStudioTranslateProvider();
                     break;
                 case TextProviderType.Ollama:
-                    _context.TranslateProvider = new OllamaTranslateProvider();
+                    translationSessionData.TranslateProvider = new OllamaTranslateProvider();
                     break;
                 case TextProviderType.OpenAi:
-                    _context.TranslateProvider = new OpenAiTranslateProvider();
+                    translationSessionData.TranslateProvider = new OpenAiTranslateProvider();
                     break;
                 case TextProviderType.DeepSeek:
-                    _context.TranslateProvider = new LmStudioTranslateProvider();
+                    translationSessionData.TranslateProvider = new LmStudioTranslateProvider();
                     break;
                 case TextProviderType.GoogleAi:
-                    _context.TranslateProvider = new GoogleAiTranslateProvider();
+                    translationSessionData.TranslateProvider = new GoogleAiTranslateProvider();
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -309,24 +273,9 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
 
         #region Promt Settings
         
-        public void AddPromt(PromtSettingData promtData)
+        public void SelectPromt(PromtSettingsItem promtData)
         {
-            promtData.Id = Guid.NewGuid().ToString();
-            _promtSettingsData.Add(promtData);
-            
-            _ = SavePromtSettings();
-        }
-        
-        public void RemovePromt(PromtSettingData promtData)
-        {
-            _promtSettingsData.RemoveAll(a => a.Id == promtData.Id);
-            
-            _ = SavePromtSettings();
-        }
-        
-        public void SelectPromt(PromtSettingData promtData)
-        {
-            var translationSessionData = _sessionRepository.SessionData.TranslationSessionData;
+            var translationSessionData = _context.SessionData.TranslationSessionData;
             translationSessionData.SelectedPromt = promtData.Promt;
 
             SaveSession();
@@ -337,50 +286,20 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
         public string GetInfo()
         {
             if (_context == null) return string.Empty;
-            var translationSessionData = _sessionRepository.SessionData.TranslationSessionData;
+            var translationSessionData = _context.SessionData.TranslationSessionData;
             
             return
-                $"BaseLanguage: {_context.BaseLanguage}\n" +
-                $"TranslateProvider: {_context.TranslateProvider?.GetType().Name}\n" +
-                $"PromtFactory: {_context.PromtFactory.GetType().Name}\n" +
-                $"Host: {string.Concat(_context.TranslateSettings?.Host, _context.TranslateSettings?.Endpoint)}\n" +
-                $"Model: {_context.TranslateSettings?.Model}\n" +
+                $"BaseLanguage: {_context.SessionData.TranslationSessionData.BaseLanguage}\n" +
+                $"TranslateProvider: {_context.SessionData.TranslationSessionData.TranslateProvider?.GetType().Name}\n" +
+                $"PromtFactory: {_context.SessionData.TranslationSessionData.PromtFactory.GetType().Name}\n" +
+                $"Host: {string.Concat(_context.SessionData.TranslationSessionData.TranslateSettings?.Host, _context.SessionData.TranslationSessionData.TranslateSettings?.Endpoint)}\n" +
+                $"Model: {_context.SessionData.TranslationSessionData.TranslateSettings?.Model}\n" +
                 $"Promt: {(string.IsNullOrEmpty(translationSessionData.SelectedPromt) ? DefaultPromt : translationSessionData.SelectedPromt)}";
         }
         
         public void SaveSession()
         {
-            _ = _sessionRepository.SaveSession();
+            _context.Save();
         }
-
-        #region Save Load
-
-        private async Task SaveTranslateProviderSettings()
-        {
-            await FileDataManager.SaveJsonAsync(_translateProviderSettingsList, TranslateProviderSettingsFileName);
-        }
-
-        private async Task LoadTranslateProviderSettings()
-        {
-            if (FileDataManager.FileExists(TranslateProviderSettingsFileName))
-                _translateProviderSettingsList = await FileDataManager.LoadJsonAsync<List<BaseTranslateProviderSettings>>(TranslateProviderSettingsFileName);
-            else
-                _translateProviderSettingsList.Clear();
-        }
-        
-        private async Task SavePromtSettings()
-        {
-            await FileDataManager.SaveJsonAsync(_promtSettingsData, PromtSettingsFileName);
-        }
-
-        private async Task LoadPromtSettings()
-        {
-            if (FileDataManager.FileExists(PromtSettingsFileName))
-                _promtSettingsData = await FileDataManager.LoadJsonAsync<List<PromtSettingData>>(PromtSettingsFileName);
-            else
-                _promtSettingsData.Clear();
-        }
-
-        #endregion
     }
 }

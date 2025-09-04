@@ -1,5 +1,5 @@
+using SerenityAITranslator.Editor.Context;
 using SerenityAITranslator.Editor.Services.Common.Views;
-using SerenityAITranslator.Editor.Services.Translation.Managers;
 using SerenityAITranslator.Editor.Services.Translation.SourceAssetProvider;
 using SerenityAITranslator.Editor.Tools;
 using UnityEditor;
@@ -9,22 +9,21 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
 {
     public class TranslateTermsView : BaseView
     {
-        private readonly TranslateManager _translateManager;
         private readonly ISourceAssetProvider _sourceAssetProvider;
         private Vector2 _scrollPosition;
         private int _editRowId = -1;
         
-        public TranslateTermsView(EditorWindow owner, TranslateManager translateManager, ISourceAssetProvider sourceAssetProvider) : base(owner)
+        public TranslateTermsView(EditorWindow owner, ISourceAssetProvider sourceAssetProvider, SerenityContext context) : base(owner, context)
         {
-            _translateManager = translateManager;
             _sourceAssetProvider = sourceAssetProvider;
         }
         
         public override void Draw()
         {
-            if (_translateManager.GetTranslationsData() == null) return;
+            var translationSessionData = _context.SessionData.TranslationSessionData;
+            if (translationSessionData.TranslationsData == null) return;
             
-            var rows = _translateManager.GetTranslationsData();
+            var rows = translationSessionData.TranslationsData;
             
             EditorGUILayout.BeginHorizontal(UiStyles.OddRowStyle);
             EditorGUILayout.LabelField("Translation Table", UiStyles.LabelStyleCenter);
@@ -76,11 +75,11 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
                     EditorGUILayout.LabelField(translatedText, UiStyles.LabelRowStyle, GUILayout.Width(400), GUILayout.Height(height));
                 }
                 
-                if (_translateManager.IsTranslateProviderAndTranslateSettingSetup)
+                if (_context.TranslateManager.IsTranslateProviderAndTranslateSettingSetup)
                 {
                     if (GUILayout.Button("Translate", GUILayout.Width(80)))
                     {
-                        _translateManager.TranslateOne(row, Repaint);
+                        _context.TranslateManager.TranslateOne(row, Repaint);
                         GUI.FocusControl(null);
                     }
                     
@@ -114,7 +113,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
                         var addButtonContent = new GUIContent("A", "Apply Change");
                         if (GUILayout.Button(addButtonContent, GUILayout.Width(20)))
                         {
-                            _translateManager.ApplyChange(row, isOk =>
+                            _context.TranslateManager.ApplyChange(row, isOk =>
                             {
                                 EditorUtility.SetDirty(_sourceAssetProvider.GetAsset());
                                 AssetDatabase.SaveAssets();
@@ -125,7 +124,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
                         if (GUILayout.Button(rewertButtonContent, GUILayout.Width(20)))
                         {
                             GUI.FocusControl(null);
-                            _translateManager.RewertChange(row);
+                            _context.TranslateManager.RewertChange(row);
                         }
                     }
                     

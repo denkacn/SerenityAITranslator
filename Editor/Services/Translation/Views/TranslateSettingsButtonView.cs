@@ -1,7 +1,6 @@
+using SerenityAITranslator.Editor.Context;
 using SerenityAITranslator.Editor.Services.Common.Views;
-using SerenityAITranslator.Editor.Services.Translation.Managers;
 using SerenityAITranslator.Editor.Services.Translation.SourceAssetProvider;
-using SerenityAITranslator.Editor.Session.Models;
 using SerenityAITranslator.Editor.Tools;
 using UnityEditor;
 using UnityEngine;
@@ -10,15 +9,13 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
 {
     public class TranslateSettingsButtonView : BaseView
     {
-        private readonly TranslateManager _translateManager;
         private readonly ISourceAssetProvider _sourceAssetProvider;
         
         private string _filter;
         private float _originalLabelWidth;
 
-        public TranslateSettingsButtonView(EditorWindow owner, TranslateManager translateManager, ISourceAssetProvider sourceAssetProvider) : base(owner)
+        public TranslateSettingsButtonView(EditorWindow owner, ISourceAssetProvider sourceAssetProvider, SerenityContext context) : base(owner, context)
         {
-            _translateManager = translateManager;
             _sourceAssetProvider = sourceAssetProvider;
         }
 
@@ -32,13 +29,14 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
             
             GUILayout.BeginHorizontal();
             
-            var optionsArray = _translateManager.GetAvailableLanguages().ToArray();
+            var translationSessionData = _context.SessionData.TranslationSessionData;
+            var optionsArray = translationSessionData.AvailableLanguages.ToArray();
 
             if (optionsArray.Length > 0)
             {
                 _originalLabelWidth = EditorGUIUtility.labelWidth;
                 EditorGUIUtility.labelWidth = UiTools.GetLabelWidth("Source");
-                var translationSessionData = _translateManager.SessionRepository.SessionData.TranslationSessionData;
+                
                 var selectedSourceLanguageIndex = UiTools.GetIndexForValue(translationSessionData.SourceLanguage, optionsArray);
                 selectedSourceLanguageIndex = EditorGUILayout.Popup("Source", selectedSourceLanguageIndex, optionsArray,GUILayout.Width(300));
                 translationSessionData.SourceLanguage = optionsArray[selectedSourceLanguageIndex];
@@ -56,16 +54,16 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
             
                 if (GUILayout.Button("Display Terms"))
                 {
-                    _translateManager.GetTranslationTerms();
+                    _context.TranslateManager.GetTranslationTerms();
                 }
 
-                if (_translateManager.IsTranslateProviderAndTranslateSettingSetup)
+                if (_context.TranslateManager.IsTranslateProviderAndTranslateSettingSetup)
                 {
-                    if (_translateManager.IsTranslateAllStarted)
+                    if (_context.TranslateManager.IsTranslateAllStarted)
                     {
                         if (GUILayout.Button("Stop Translate Process"))
                         {
-                            _translateManager.StopTranslateProcess();
+                            _context.TranslateManager.StopTranslateProcess();
                         }
                     }
                     else
@@ -74,7 +72,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
                         {
                             var result = UiTools.DisplayTranslateAllDialog();
 
-                            if (result) _translateManager.TranslateAll(Repaint);
+                            if (result) _context.TranslateManager.TranslateAll(Repaint);
                         }
                     }
                     
@@ -84,7 +82,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
 
                         if (result)
                         {
-                            _translateManager.ApplyChanges(isOk =>
+                            _context.TranslateManager.ApplyChanges(isOk =>
                             {
                                 EditorUtility.SetDirty(_sourceAssetProvider.GetAsset());
                                 
@@ -112,7 +110,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
             
             if (GUILayout.Button("Apply Filter"))
             {
-                _translateManager.GetTranslationTerms(_filter);
+                _context.TranslateManager.GetTranslationTerms(_filter);
             }
             
             GUILayout.Space(20);
@@ -121,7 +119,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
             
             if (GUILayout.Button("All"))
             {
-                _translateManager.GetTranslationTerms();
+                _context.TranslateManager.GetTranslationTerms();
             }
 
             GUILayout.Space(5);
@@ -131,7 +129,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
             {
                 if (GUILayout.Button(group))
                 {
-                    _translateManager.GetTranslationTermsByGroup(group);
+                    _context.TranslateManager.GetTranslationTermsByGroup(group);
                 }
             }
             

@@ -2,7 +2,7 @@ using System;
 using System.Text;
 using System.Threading.Tasks;
 using SerenityAITranslator.Editor.Services.Common.PromtFactories;
-using SerenityAITranslator.Editor.Services.Translation.AiProviders.Settings;
+using SerenityAITranslator.Editor.Services.Translation.Collections;
 using SerenityAITranslator.Editor.Services.Translation.Models;
 using Unity.Plastic.Newtonsoft.Json;
 using UnityEngine;
@@ -12,7 +12,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.AiProviders
 {
     public class OllamaTranslateProvider : BaseTranslateProvider
     {
-        public override async Task<TranslatedData> GetTranslate(TranslatedPromtData promtData, BaseTranslateProviderSettings settings, PromtFactoryBase promtFactory)
+        public override async Task<TranslatedData> GetTranslate(TranslatedPromtData promtData, TranslateProviderConfigurationItem settings, PromtFactoryBase promtFactory)
         {
             var requestData = new Request
             {

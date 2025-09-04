@@ -1,13 +1,16 @@
+using System;
+
 namespace SerenityAITranslator.Editor.Services.Translation.Models
 {
+    [Serializable]
     public class TranslatedRowData
     {
-        public int Id { get; set; }
-        public string Term { get; set; }
-        public string SourceText { get; set; }
-        public string OriginalText { get; set; }
-        public string TranslatedText { get; set; }
-        public bool IsShowTranslated { get; set; }
+        public int Id;
+        public string Term;
+        public string SourceText;
+        public string OriginalText;
+        public string TranslatedText;
+        public bool IsShowTranslated;
         
         public TranslatedRowData(int id, string term, string sourceText, string originalText)
         {
