@@ -257,7 +257,10 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
                     translationSessionData.TranslateProvider = new OpenAiTranslateProvider();
                     break;
                 case TextProviderType.DeepSeek:
-                    translationSessionData.TranslateProvider = new LmStudioTranslateProvider();
+                    translationSessionData.TranslateProvider = new DeepSeekTranslateProvider();
+                    break;
+                case TextProviderType.Grok:
+                    translationSessionData.TranslateProvider = new GrokTranslateProvider();
                     break;
                 case TextProviderType.GoogleAi:
                     translationSessionData.TranslateProvider = new GoogleAiTranslateProvider();

@@ -52,7 +52,23 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
             var originalLabelWidth = EditorGUIUtility.labelWidth;
             
             EditorGUIUtility.labelWidth = UiTools.GetLabelWidth("Provider Type"); 
-            _newTranslateProviderSettings.ProviderType = (TextProviderType)EditorGUILayout.EnumPopup("Provider Type", _newTranslateProviderSettings.ProviderType,GUILayout.Width(200));
+            var providerType = (TextProviderType)EditorGUILayout.EnumPopup("Provider Type", _newTranslateProviderSettings.ProviderType,GUILayout.Width(200));
+
+            if (_newTranslateProviderSettings.ProviderType != providerType)
+            {
+                _newTranslateProviderSettings.ProviderType = providerType;
+                var setting = _context.TranslateProvidersSetting.Settings.Find(s => s.ProviderType == providerType);
+                if (setting != null)
+                {
+                    _newTranslateProviderSettings.Host = setting.Host;
+                    _newTranslateProviderSettings.Endpoint = setting.Endpoint;
+                }
+                else
+                {
+                    _newTranslateProviderSettings.Host = string.Empty;
+                    _newTranslateProviderSettings.Endpoint = string.Empty;
+                }
+            }
             
             EditorGUIUtility.labelWidth = UiTools.GetLabelWidth("Host"); 
             _newTranslateProviderSettings.Host = EditorGUILayout.TextField("Host", _newTranslateProviderSettings.Host,GUILayout.Width(250));
@@ -87,10 +103,17 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
             
             if (GUILayout.Button("Save"))
             {
-                _newTranslateProviderSettings.Id = Guid.NewGuid().ToString();
-                _context.TranslateProvidersConfigurations.Providers.Add(_newTranslateProviderSettings);
-                _context.Save();
-                _isShowAddMenu = false;
+                if (_newTranslateProviderSettings.ProviderType == TextProviderType.None)
+                {
+                    UiTools.DisplayCreateProviderErrorMessage();
+                }
+                else
+                {
+                    _newTranslateProviderSettings.Id = Guid.NewGuid().ToString();
+                    _context.TranslateProvidersConfigurations.Providers.Add(_newTranslateProviderSettings);
+                    _context.Save();
+                    _isShowAddMenu = false;
+                }
             }
 
             EditorGUILayout.EndHorizontal();

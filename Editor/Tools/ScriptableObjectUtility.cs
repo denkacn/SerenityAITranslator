@@ -30,5 +30,10 @@ namespace SerenityAITranslator.Editor.Tools
 
             return asset;
         }
+        
+        public static T LoadFromResources<T>(string assetPath) where T : ScriptableObject
+        {
+            return Resources.Load<T>(assetPath);
+        }
     }
 }

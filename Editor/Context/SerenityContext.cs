@@ -11,13 +11,18 @@ namespace SerenityAITranslator.Editor.Context
         public SessionData SessionData { get; private set; }
         public PromtSettingsCollection PromtSettings { get; private set; }
         public TranslateProvidersConfigurationCollection TranslateProvidersConfigurations { get; private set; }
+        public TranslateProvidersSettingCollection TranslateProvidersSetting { get; private set; }
         public TranslateManager TranslateManager  { get; private set; }
         
-        public void Init(SessionData sessionData, PromtSettingsCollection promtSettings, TranslateProvidersConfigurationCollection translateProvidersConfigurations)
+        public void Init(SessionData sessionData, 
+            PromtSettingsCollection promtSettings,
+            TranslateProvidersConfigurationCollection translateProvidersConfigurations,
+            TranslateProvidersSettingCollection translateProvidersSetting)
         {
             SessionData = sessionData;
             PromtSettings = promtSettings;
             TranslateProvidersConfigurations = translateProvidersConfigurations;
+            TranslateProvidersSetting = translateProvidersSetting;
         }
         
         public void SetupTranslateManager(TranslateManager translateManager)

@@ -79,6 +79,16 @@ namespace SerenityAITranslator.Editor.Tools
         {
             return DisplayDialog("Do you really want to apply changes in all terms?\nThis will overwrite non-empty terms for the selected language in LanguageSourceAsset");
         }
+        
+        public static bool DisplayCreateProviderErrorMessage()
+        {
+            return DisplayMessage("The type of provider is not selected!");
+        }
+
+        public static bool DisplayMessage(string message)
+        {
+            return EditorUtility.DisplayDialog("Warring", message, "Ok");
+        }
 
         public static bool DisplayDialog(string question)
         {

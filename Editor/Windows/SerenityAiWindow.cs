@@ -84,10 +84,14 @@ namespace SerenityAITranslator.Editor.Windows
         private void PrepareData()
         {
             _context = new SerenityContext();
+            
             var sessionData = ScriptableObjectUtility.LoadOrCreate<SessionData>("Assets/Editor/SerenityAi/Session.asset");
             var promtSettings = ScriptableObjectUtility.LoadOrCreate<PromtSettingsCollection>("Assets/Editor/SerenityAi/PromtSettings.asset");
             var translateProvidersConfigurations = ScriptableObjectUtility.LoadOrCreate<TranslateProvidersConfigurationCollection>("Assets/Editor/SerenityAi/TranslateProvidersConfigurations.asset");
-            _context.Init(sessionData, promtSettings, translateProvidersConfigurations);
+            
+            var translateProvidersSettings = ScriptableObjectUtility.LoadFromResources<TranslateProvidersSettingCollection>("TranslateProvidersSetting");
+            
+            _context.Init(sessionData, promtSettings, translateProvidersConfigurations, translateProvidersSettings);
             
             var translateManager = new TranslateManager(_context);
             _context.SetupTranslateManager(translateManager);
