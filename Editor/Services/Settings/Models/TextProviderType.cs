@@ -1,4 +1,4 @@
-namespace SerenityAITranslator.Editor.Services.Translation.AiProviders
+namespace SerenityAITranslator.Editor.Services.Settings.Models
 {
     public enum TextProviderType
     {

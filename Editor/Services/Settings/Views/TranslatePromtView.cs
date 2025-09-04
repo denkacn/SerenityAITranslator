@@ -6,7 +6,7 @@ using SerenityAITranslator.Editor.Tools;
 using UnityEditor;
 using UnityEngine;
 
-namespace SerenityAITranslator.Editor.Services.Translation.Views
+namespace SerenityAITranslator.Editor.Services.Settings.Views
 {
     public class TranslatePromtView : BaseView
     {
@@ -17,7 +17,9 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
 
         public override void Draw()
         {
-            GUILayout.Label("Promt Settings", EditorStyles.boldLabel);
+            EditorGUILayout.BeginVertical("helpbox");
+            
+            GUILayout.Label("Promt Settings:", UiStyles.LabelRowStyleYellowBold);
 
             DrawPromtList();
             
@@ -38,6 +40,8 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
                     _isShowAddMenu = false;
                 }
             }
+            
+            EditorGUILayout.EndVertical();
             
             GUILayout.Space(10);
         }

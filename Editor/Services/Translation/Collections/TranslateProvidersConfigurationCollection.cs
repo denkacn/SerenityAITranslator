@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using SerenityAITranslator.Editor.Services.Translation.AiProviders;
+using SerenityAITranslator.Editor.Services.Settings.Models;
 using UnityEngine;
 
 namespace SerenityAITranslator.Editor.Services.Translation.Collections

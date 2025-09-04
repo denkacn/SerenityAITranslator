@@ -53,6 +53,15 @@ namespace SerenityAITranslator.Editor.Tools
             normal = { textColor = UiTools.HexToColor("#3CFF00") }
         };
         
+        public static readonly GUIStyle LabelRowStyleYellowBold = new GUIStyle(EditorStyles.label)
+        {
+            wordWrap = true,
+            alignment = TextAnchor.UpperLeft,
+            normal = { textColor = UiTools.HexToColor("#f9f6af") },
+            hover = { textColor = UiTools.HexToColor("#f9f6af") },
+            fontStyle = FontStyle.Bold,
+        };
+        
         public static readonly GUIStyle LabelRowStyleYellow = new GUIStyle(EditorStyles.label)
         {
             wordWrap = true,

@@ -3,9 +3,11 @@ using SerenityAITranslator.Editor.Context;
 using SerenityAITranslator.Editor.Services.Common.Collections;
 using SerenityAITranslator.Editor.Services.Common.Enums;
 using SerenityAITranslator.Editor.Services.Common.Views;
+using SerenityAITranslator.Editor.Services.Settings.Views;
 using SerenityAITranslator.Editor.Services.Translation.Collections;
 using SerenityAITranslator.Editor.Services.Translation.Managers;
 using SerenityAITranslator.Editor.Services.Translation.Views;
+using SerenityAITranslator.Editor.Services.Voice.Collections;
 using SerenityAITranslator.Editor.Services.Voice.Views;
 using SerenityAITranslator.Editor.Session.Models;
 using SerenityAITranslator.Editor.Tools;
@@ -24,10 +26,14 @@ namespace SerenityAITranslator.Editor.Windows
         public static void OpenSerenityAiWindow()
         {
             var window = GetWindow<SerenityAiWindow>("Serenity AI Window");
-            window.Init();
             window.Show();
         }
 
+        private void OnEnable()
+        {
+            Init();
+        }
+        
         public void Init()
         {
             PrepareData();
@@ -39,17 +45,17 @@ namespace SerenityAITranslator.Editor.Windows
             GUILayout.Label("Serenity AI v0.15.1", EditorStyles.boldLabel);
             GUILayout.Space(10);
             
-            GUILayout.Label("Select Service:");
+            //GUILayout.Label("Select Service:");
             GUILayout.BeginHorizontal(UiStyles.OddRowStyle);
 
-            if (GUILayout.Button("Translate", GUILayout.Width(100), GUILayout.Height(30)))
+            if (GUILayout.Button("Settings", GUILayout.Width(100), GUILayout.Height(20)))
             {
-                SelectService(SerenityServiceType.Translation);
+                SelectService(SerenityServiceType.Settings);
             }
             
-            if (GUILayout.Button("Voice", GUILayout.Width(100), GUILayout.Height(30)))
+            if (GUILayout.Button("Translate", GUILayout.Width(100), GUILayout.Height(20)))
             {
-                SelectService(SerenityServiceType.Voice);
+                SelectService(SerenityServiceType.Translation);
             }
             
             GUILayout.FlexibleSpace();
@@ -69,10 +75,13 @@ namespace SerenityAITranslator.Editor.Windows
             
             switch (selectServiceType)
             {
+                case SerenityServiceType.Settings:
+                    _selectedView = new SettingsMainView(this, _context);
+                    _selectedView.Init();
+                    break;
                 case SerenityServiceType.Translation:
                     _selectedView = new TranslateMainView(this, _context);
                     _selectedView.Init();
-                    
                     break;
                 case SerenityServiceType.Voice:
                     _selectedView = new VoiceMainView(this, _context);
@@ -88,10 +97,11 @@ namespace SerenityAITranslator.Editor.Windows
             var sessionData = ScriptableObjectUtility.LoadOrCreate<SessionData>("Assets/Editor/SerenityAi/Session.asset");
             var promtSettings = ScriptableObjectUtility.LoadOrCreate<PromtSettingsCollection>("Assets/Editor/SerenityAi/PromtSettings.asset");
             var translateProvidersConfigurations = ScriptableObjectUtility.LoadOrCreate<TranslateProvidersConfigurationCollection>("Assets/Editor/SerenityAi/TranslateProvidersConfigurations.asset");
-            
+            var ttsProvidersConfiguration = ScriptableObjectUtility.LoadOrCreate<TtsProvidersConfigurationCollection>("Assets/Editor/SerenityAi/TtsProvidersConfiguration.asset");
+
             var translateProvidersSettings = ScriptableObjectUtility.LoadFromResources<TranslateProvidersSettingCollection>("TranslateProvidersSetting");
             
-            _context.Init(sessionData, promtSettings, translateProvidersConfigurations, translateProvidersSettings);
+            _context.Init(sessionData, promtSettings, translateProvidersConfigurations, translateProvidersSettings, ttsProvidersConfiguration);
             
             var translateManager = new TranslateManager(_context);
             _context.SetupTranslateManager(translateManager);

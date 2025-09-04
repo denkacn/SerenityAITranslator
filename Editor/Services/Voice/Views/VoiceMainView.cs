@@ -46,7 +46,7 @@ namespace SerenityAITranslator.Editor.Services.Voice.Views
         private async Task TestGetVoiceGemini()
         {
             var apiKey = "AIzaSyBuoxBIyA1o06ErQFY_KN_GHYRG4P0KwRg";
-            var ttsClient = new GeminiTTSProvider(apiKey);
+            var ttsClient = new GeminiProvider(apiKey);
             
             var pcmPath = await ttsClient.GenerateSpeechAndSaveAsync(
                 "Say cheerfully: Have a wonderful day!",

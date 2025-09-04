@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using SerenityAITranslator.Editor.Context;
 using SerenityAITranslator.Editor.Services.Common.Views;
+using SerenityAITranslator.Editor.Services.Settings.Views;
 using SerenityAITranslator.Editor.Services.Translation.SourceAssetProvider;
 using SerenityAITranslator.Editor.Tools;
 using UnityEditor;
@@ -48,7 +49,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
             
             if (_context.TranslateManager != null && _context.TranslateManager.IsContextSetup)
             {
-                DrawTranslateProvider();
+                //DrawTranslateProvider();
                 
                 DrawTranslateUI();
             }
@@ -110,8 +111,6 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
 
                 GUILayout.EndVertical();
             }
-            
-            
             
             GUILayout.Space(10);
         }

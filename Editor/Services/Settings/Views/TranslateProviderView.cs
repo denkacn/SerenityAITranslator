@@ -1,13 +1,13 @@
 using System;
 using SerenityAITranslator.Editor.Context;
 using SerenityAITranslator.Editor.Services.Common.Views;
-using SerenityAITranslator.Editor.Services.Translation.AiProviders;
+using SerenityAITranslator.Editor.Services.Settings.Models;
 using SerenityAITranslator.Editor.Services.Translation.Collections;
 using SerenityAITranslator.Editor.Tools;
 using UnityEditor;
 using UnityEngine;
 
-namespace SerenityAITranslator.Editor.Services.Translation.Views
+namespace SerenityAITranslator.Editor.Services.Settings.Views
 {
     public class TranslateProviderView : BaseView
     {
@@ -17,7 +17,9 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
         
         public override void Draw()
         {
-            GUILayout.Label("Translate Provider Settings", EditorStyles.boldLabel);
+            EditorGUILayout.BeginVertical("helpbox");
+            
+            GUILayout.Label("Translate Provider Settings:", UiStyles.LabelRowStyleYellowBold);
             
             DrawTranslateProviderList();
             
@@ -41,6 +43,9 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
                     _isShowAddMenu = false;
                 }
             }
+            
+            
+            EditorGUILayout.EndVertical();
             
             GUILayout.Space(10);
         }
@@ -124,13 +129,13 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
             var providers = _context.TranslateProvidersConfigurations.Providers;
             for (var i = 0; i < providers.Count; i++)
             {
-                var rowStyle = (i % 2 == 0) ? UiStyles.EvenRowStyle : UiStyles.OddRowStyle;
+                var rowStyle = (i % 2 == 0) ? UiStyles.OddRowStyle : UiStyles.EvenRowStyle;
                 var provider = providers[i];
 
                 EditorGUILayout.BeginHorizontal(rowStyle);
                 
                 EditorGUILayout.LabelField(provider.ProviderType.ToString(), GUILayout.Width(100));
-                EditorGUILayout.LabelField(provider.Host, GUILayout.Width(200));
+                EditorGUILayout.LabelField(provider.Host, GUILayout.Width(250));
                 EditorGUILayout.LabelField(provider.Endpoint, GUILayout.Width(200));
                 EditorGUILayout.LabelField(provider.IsTokenFromFile ? "From File" : string.IsNullOrEmpty(provider.Token) ? "" : "*****", GUILayout.Width(200));
                 EditorGUILayout.LabelField(provider.Model, GUILayout.Width(200));

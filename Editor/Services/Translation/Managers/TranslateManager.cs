@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using SerenityAITranslator.Editor.Context;
 using SerenityAITranslator.Editor.Services.Common.Collections;
 using SerenityAITranslator.Editor.Services.Common.PromtFactories;
+using SerenityAITranslator.Editor.Services.Settings.Models;
 using SerenityAITranslator.Editor.Services.Translation.AiProviders;
 using SerenityAITranslator.Editor.Services.Translation.Collections;
 using SerenityAITranslator.Editor.Services.Translation.Models;
