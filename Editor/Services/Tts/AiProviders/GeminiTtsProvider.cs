@@ -5,9 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 
-namespace SerenityAITranslator.Editor.Services.Voice.AiProviders
+namespace SerenityAITranslator.Editor.Services.Tts.AiProviders
 {
-    public class GeminiProvider
+    public class GeminiTtsProvider
     {
         private readonly string _apiKey;
         private readonly HttpClient _httpClient;
@@ -15,7 +15,7 @@ namespace SerenityAITranslator.Editor.Services.Voice.AiProviders
         private const string BaseUrl =
             "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent";
 
-        public GeminiProvider(string apiKey)
+        public GeminiTtsProvider(string apiKey)
         {
             _apiKey = apiKey;
             _httpClient = new HttpClient();

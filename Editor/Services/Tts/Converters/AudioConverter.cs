@@ -1,7 +1,7 @@
 using System.IO;
 using System.Text;
 
-namespace SerenityAITranslator.Editor.Services.Voice.Converters
+namespace SerenityAITranslator.Editor.Services.Tts.Converters
 {
     public class AudioConverter
     {

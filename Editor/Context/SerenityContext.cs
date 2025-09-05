@@ -1,7 +1,7 @@
 using SerenityAITranslator.Editor.Services.Common.Collections;
 using SerenityAITranslator.Editor.Services.Translation.Collections;
 using SerenityAITranslator.Editor.Services.Translation.Managers;
-using SerenityAITranslator.Editor.Services.Voice.Collections;
+using SerenityAITranslator.Editor.Services.Tts.Collections;
 using SerenityAITranslator.Editor.Session.Models;
 using UnityEditor;
 

@@ -2,7 +2,7 @@ using System;
 using SerenityAITranslator.Editor.Context;
 using SerenityAITranslator.Editor.Services.Common.Views;
 using SerenityAITranslator.Editor.Services.Settings.Models;
-using SerenityAITranslator.Editor.Services.Voice.Collections;
+using SerenityAITranslator.Editor.Services.Tts.Collections;
 using SerenityAITranslator.Editor.Tools;
 using UnityEditor;
 using UnityEngine;
@@ -128,6 +128,8 @@ namespace SerenityAITranslator.Editor.Services.Settings.Views
         private void DrawTranslateProviderList()
         {
             var providers = _context.TtsProvidersConfigurations.Providers;
+            if (providers == null || providers.Count == 0) return;
+            
             for (var i = 0; i < providers.Count; i++)
             {
                 var rowStyle = (i % 2 == 0) ? UiStyles.OddRowStyle : UiStyles.EvenRowStyle;

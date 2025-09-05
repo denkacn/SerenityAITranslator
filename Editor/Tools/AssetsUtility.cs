@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace SerenityAITranslator.Editor.Tools
 {
-    public static class ScriptableObjectUtility
+    public static class AssetsUtility
     {
         public static T LoadOrCreate<T>(string assetPath) where T : ScriptableObject
         {
@@ -34,6 +34,11 @@ namespace SerenityAITranslator.Editor.Tools
         public static T LoadFromResources<T>(string assetPath) where T : ScriptableObject
         {
             return Resources.Load<T>(assetPath);
+        }
+
+        public static Texture2D LoadIcon(string iconName)
+        {
+            return AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/SerenityAITranslator/Editor/Icons/" + iconName);
         }
     }
 }

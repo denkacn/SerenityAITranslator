@@ -3,16 +3,16 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using SerenityAITranslator.Editor.Context;
 using SerenityAITranslator.Editor.Services.Common.Views;
-using SerenityAITranslator.Editor.Services.Voice.AiProviders;
-using SerenityAITranslator.Editor.Services.Voice.Converters;
+using SerenityAITranslator.Editor.Services.Tts.AiProviders;
+using SerenityAITranslator.Editor.Services.Tts.Converters;
 using UnityEditor;
 using UnityEngine;
 
-namespace SerenityAITranslator.Editor.Services.Voice.Views
+namespace SerenityAITranslator.Editor.Services.Tts.Views
 {
-    public class VoiceMainView : MainView
+    public class TtsMainView : MainView
     {
-        public VoiceMainView(EditorWindow owner, SerenityContext context) : base(owner, context)
+        public TtsMainView(EditorWindow owner, SerenityContext context) : base(owner, context)
         {
             
         }
@@ -39,14 +39,14 @@ namespace SerenityAITranslator.Editor.Services.Voice.Views
             var textToSpeak = "Hello! This is a test of ElevenLabs TTS API using C#. It's working perfectly!";
             var outputFilePath = "D://output.mp3";
 
-            var service = new ElevenLabsProvider();
+            var service = new ElevenLabsTtsProvider();
             var success = await service.TextToSpeechAsync(voiceId, textToSpeak, outputFilePath);
         }
 
         private async Task TestGetVoiceGemini()
         {
             var apiKey = "AIzaSyBuoxBIyA1o06ErQFY_KN_GHYRG4P0KwRg";
-            var ttsClient = new GeminiProvider(apiKey);
+            var ttsClient = new GeminiTtsProvider(apiKey);
             
             var pcmPath = await ttsClient.GenerateSpeechAndSaveAsync(
                 "Say cheerfully: Have a wonderful day!",
@@ -67,7 +67,7 @@ namespace SerenityAITranslator.Editor.Services.Voice.Views
         
         private async Task TestGetVoiceCoqui()
         {
-            var voiceClient = new CoquiProvider();
+            var voiceClient = new CoquiTtsProvider();
             await voiceClient.TextToSpeechAsync("Here's how you can send a request from C# to Coqui TTS - using a local server hosted with tts-server and making HTTP calls to it", "Marcos Rudaski", "en");
             
         }

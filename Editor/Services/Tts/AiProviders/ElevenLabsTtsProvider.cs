@@ -5,15 +5,15 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 
-namespace SerenityAITranslator.Editor.Services.Voice.AiProviders
+namespace SerenityAITranslator.Editor.Services.Tts.AiProviders
 {
-    public class ElevenLabsProvider
+    public class ElevenLabsTtsProvider
     {
         private readonly string _apiKey = "sk_caf85f82415adf253311e446a3215b30bf84622c21783551";
         private readonly string _apiUrl = "https://api.elevenlabs.io/v1/";
         private readonly HttpClient _httpClient;
 
-        public ElevenLabsProvider()
+        public ElevenLabsTtsProvider()
         {
             //_apiKey = apiKey;
             _httpClient = new HttpClient();

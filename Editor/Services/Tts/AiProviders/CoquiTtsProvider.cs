@@ -3,13 +3,13 @@ using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace SerenityAITranslator.Editor.Services.Voice.AiProviders
+namespace SerenityAITranslator.Editor.Services.Tts.AiProviders
 {
-    public class CoquiProvider
+    public class CoquiTtsProvider
     {
         private readonly HttpClient _httpClient;
         
-        public CoquiProvider()
+        public CoquiTtsProvider()
         {
             _httpClient = new HttpClient();
         }

@@ -4,7 +4,7 @@ using SerenityAITranslator.Editor.Services.Common.Models;
 using SerenityAITranslator.Editor.Services.Settings.Models;
 using UnityEngine;
 
-namespace SerenityAITranslator.Editor.Services.Voice.Collections
+namespace SerenityAITranslator.Editor.Services.Tts.Collections
 {
     public class TtsProvidersConfigurationCollection : ScriptableObject
     {
