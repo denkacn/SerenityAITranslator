@@ -8,6 +8,7 @@ using SerenityAITranslator.Editor.Services.Translation.Collections;
 using SerenityAITranslator.Editor.Services.Translation.Managers;
 using SerenityAITranslator.Editor.Services.Translation.Views;
 using SerenityAITranslator.Editor.Services.Tts.Collections;
+using SerenityAITranslator.Editor.Services.Tts.Managers;
 using SerenityAITranslator.Editor.Services.Tts.Views;
 using SerenityAITranslator.Editor.Session.Models;
 using SerenityAITranslator.Editor.Tools;
@@ -62,7 +63,7 @@ namespace SerenityAITranslator.Editor.Windows
             
             if (GUILayout.Button(new GUIContent(" Voice", AssetsUtility.LoadIcon("icon-speaker.png")), GUILayout.Width(100), GUILayout.Height(25)))
             {
-                SelectService(SerenityServiceType.Translation);
+                SelectService(SerenityServiceType.Voice);
             }
             
             GUILayout.FlexibleSpace();
@@ -107,14 +108,16 @@ namespace SerenityAITranslator.Editor.Windows
             var promtSettings = AssetsUtility.LoadOrCreate<PromtSettingsCollection>("Assets/Editor/SerenityAi/PromtSettings.asset");
             var translateProvidersConfigurations = AssetsUtility.LoadOrCreate<TranslateProvidersConfigurationCollection>("Assets/Editor/SerenityAi/TranslateProvidersConfigurations.asset");
             var ttsProvidersConfiguration = AssetsUtility.LoadOrCreate<TtsProvidersConfigurationCollection>("Assets/Editor/SerenityAi/TtsProvidersConfiguration.asset");
+            var ttsPromtSettings = AssetsUtility.LoadOrCreate<PromtSettingsCollection>("Assets/Editor/SerenityAi/TtsPromtSettings.asset");
             var translateProvidersSettings = AssetsUtility.LoadOrCreate<TranslateProvidersSettingCollection>("Assets/SerenityAITranslator/Settings/TranslateProvidersSetting.asset");
-
-            //var translateProvidersSettings = AssetsUtility.LoadFromResources<TranslateProvidersSettingCollection>("TranslateProvidersSetting");
             
-            _context.Init(sessionData, promtSettings, translateProvidersConfigurations, translateProvidersSettings, ttsProvidersConfiguration);
+            _context.Init(sessionData, promtSettings, translateProvidersConfigurations, translateProvidersSettings, ttsProvidersConfiguration, ttsPromtSettings);
             
             var translateManager = new TranslateManager(_context);
             _context.SetupTranslateManager(translateManager);
+
+            var ttsManager = new TtsManager(_context);
+            _context.SetupTtsManager(ttsManager);
         }
     }
 }

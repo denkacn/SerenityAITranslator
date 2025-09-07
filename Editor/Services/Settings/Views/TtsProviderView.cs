@@ -147,7 +147,7 @@ namespace SerenityAITranslator.Editor.Services.Settings.Views
 
                 if (GUILayout.Button("Select", isSelected? UiStyles.ButtonStyleGreen : EditorStyles.miniButton, GUILayout.Width(100)))
                 {
-                    //_context.TranslateManager.SelectTranslateProviderSettings(provider);
+                    _context.TtsManager.SelectTranslateProviderSettings(provider);
                 }
                 
                 if (GUILayout.Button("Remove", GUILayout.Width(100)))

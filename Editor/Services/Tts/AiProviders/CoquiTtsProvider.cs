@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace SerenityAITranslator.Editor.Services.Tts.AiProviders
 {
-    public class CoquiTtsProvider
+    public class CoquiTtsProvider : IAITtsProvider
     {
         private readonly HttpClient _httpClient;
         

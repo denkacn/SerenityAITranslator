@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 
 namespace SerenityAITranslator.Editor.Services.Tts.AiProviders
 {
-    public class ElevenLabsTtsProvider
+    public class ElevenLabsTtsProvider : IAITtsProvider
     {
         private readonly string _apiKey = "sk_caf85f82415adf253311e446a3215b30bf84622c21783551";
         private readonly string _apiUrl = "https://api.elevenlabs.io/v1/";

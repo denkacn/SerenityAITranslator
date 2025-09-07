@@ -33,6 +33,11 @@ namespace SerenityAITranslator.Editor.Tools
                 background = UiTools.MakeColorTexture(UiTools.HexToColor("#222222"), 1, 1)
             }
         };
+
+        public static readonly GUIStyle LabelStyleRich = new GUIStyle(EditorStyles.label)
+        {
+            richText = true
+        };
         
         public static readonly GUIStyle LabelStyleCenter = new GUIStyle(EditorStyles.label)
         {

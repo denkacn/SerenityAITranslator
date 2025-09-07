@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 
 namespace SerenityAITranslator.Editor.Services.Tts.AiProviders
 {
-    public class GeminiTtsProvider
+    public class GeminiTtsProvider : IAITtsProvider
     {
         private readonly string _apiKey;
         private readonly HttpClient _httpClient;
@@ -15,11 +15,11 @@ namespace SerenityAITranslator.Editor.Services.Tts.AiProviders
         private const string BaseUrl =
             "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent";
 
-        public GeminiTtsProvider(string apiKey)
+        /*public GeminiTtsProvider(string apiKey)
         {
             _apiKey = apiKey;
             _httpClient = new HttpClient();
-        }
+        }*/
 
         private async Task<byte[]> TextToSpeechAsync(string text, string voiceName = "Kore")
         {

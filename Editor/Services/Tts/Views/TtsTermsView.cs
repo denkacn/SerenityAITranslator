@@ -5,15 +5,15 @@ using SerenityAITranslator.Editor.Tools;
 using UnityEditor;
 using UnityEngine;
 
-namespace SerenityAITranslator.Editor.Services.Translation.Views
+namespace SerenityAITranslator.Editor.Services.Tts.Views
 {
-    public class TranslateTermsView : BaseView
+    public class TtsTermsView : BaseView
     {
         private readonly ISourceAssetProvider _sourceAssetProvider;
         private Vector2 _scrollPosition;
         private int _editRowId = -1;
         
-        public TranslateTermsView(EditorWindow owner, ISourceAssetProvider sourceAssetProvider, SerenityContext context) : base(owner, context)
+        public TtsTermsView(EditorWindow owner, ISourceAssetProvider sourceAssetProvider, SerenityContext context) : base(owner, context)
         {
             _sourceAssetProvider = sourceAssetProvider;
         }
@@ -36,8 +36,8 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
             EditorGUILayout.BeginHorizontal(UiStyles.DarkRowStyle);
             //EditorGUILayout.LabelField("Id", UiStyles.LabelHeaderStyle, GUILayout.Width(40));
             EditorGUILayout.LabelField("Terms", UiStyles.LabelHeaderStyle, GUILayout.Width(215));
-            EditorGUILayout.LabelField("Base Text", UiStyles.LabelHeaderStyle, GUILayout.Width(415));
-            EditorGUILayout.LabelField("Translation", UiStyles.LabelHeaderStyle, GUILayout.Width(400));
+            EditorGUILayout.LabelField("Text", UiStyles.LabelHeaderStyle, GUILayout.Width(415));
+            //EditorGUILayout.LabelField("Translation", UiStyles.LabelHeaderStyle, GUILayout.Width(400));
             EditorGUILayout.LabelField("Controls", UiStyles.LabelHeaderStyle, GUILayout.Width(100));
             
             GUILayout.FlexibleSpace();
@@ -56,7 +56,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
                 EditorGUILayout.LabelField(row.Term, UiStyles.LabelRowStyle,GUILayout.Width(200));
                 EditorGUILayout.LabelField(row.SourceText, UiStyles.LabelRowStyle, GUILayout.Width(400), GUILayout.MinHeight(30), GUILayout.MaxHeight(800));
 
-                var height = UiStyles.LabelRowStyle.CalcHeight(new GUIContent(translatedText), 400);
+                /*var height = UiStyles.LabelRowStyle.CalcHeight(new GUIContent(translatedText), 400);
                 
                 if (row.IsShowTranslated)
                 {
@@ -73,7 +73,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
                 else
                 {
                     EditorGUILayout.LabelField(translatedText, UiStyles.LabelRowStyle, GUILayout.Width(400), GUILayout.Height(height));
-                }
+                }*/
                 
                 if (_context.TranslateManager.IsTranslateProviderAndTranslateSettingSetup)
                 {

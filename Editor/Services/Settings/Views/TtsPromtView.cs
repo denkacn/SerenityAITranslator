@@ -8,18 +8,18 @@ using UnityEngine;
 
 namespace SerenityAITranslator.Editor.Services.Settings.Views
 {
-    public class TranslatePromtView : BaseView
+    public class TtsPromtView : BaseView
     {
         private PromtSettingsItem _promtSettingData;
         private bool _isShowAddMenu = false;
         
-        public TranslatePromtView(EditorWindow owner, SerenityContext context) : base(owner, context){}
+        public TtsPromtView(EditorWindow owner, SerenityContext context) : base(owner, context){}
 
         public override void Draw()
         {
             EditorGUILayout.BeginVertical("helpbox");
             
-            GUILayout.Label("Translate Promt Settings:", UiStyles.LabelRowStyleYellowBold);
+            GUILayout.Label("TTS Promt Settings:", UiStyles.LabelRowStyleYellowBold);
 
             DrawPromtList();
             
@@ -65,8 +65,9 @@ namespace SerenityAITranslator.Editor.Services.Settings.Views
             if (GUILayout.Button("Save"))
             {
                 _promtSettingData.Id = Guid.NewGuid().ToString();
-                _context.TranslatePromtSettings.Settings.Add(_promtSettingData);
+                _context.TtsPromtSettings.Settings.Add(_promtSettingData);
                 _context.Save();
+                
                 _isShowAddMenu = false;
             }
 
@@ -75,7 +76,7 @@ namespace SerenityAITranslator.Editor.Services.Settings.Views
         
         private void DrawPromtList()
         {
-            var promtSettings = _context.TranslatePromtSettings.Settings;
+            var promtSettings = _context.TtsPromtSettings.Settings;
             for (var i = 0; i < promtSettings.Count; i++)
             {
                 var rowStyle = (i % 2 == 0) ? UiStyles.OddRowStyle : UiStyles.EvenRowStyle;
@@ -86,12 +87,11 @@ namespace SerenityAITranslator.Editor.Services.Settings.Views
                 EditorGUILayout.LabelField(promtData.Name, UiStyles.LabelRowStyle, GUILayout.Width(200));
                 EditorGUILayout.LabelField(promtData.Promt, UiStyles.LabelRowStyle, GUILayout.Width(800));
 
-                var isSelected = _context.SessionData.TranslationSessionData.SelectedPromt ==
-                                 promtData.Promt;
+                var isSelected = _context.SessionData.TtsSessionData.SelectedPromt == promtData.Promt;
                 
                 if (GUILayout.Button("Select", isSelected? UiStyles.ButtonStyleGreen : EditorStyles.miniButton, GUILayout.Width(100)))
                 {
-                    _context.TranslateManager.SelectPromt(promtData);
+                    _context.TtsManager.SelectPromt(promtData);
                 }
                 
                 if (GUILayout.Button("Remove", GUILayout.Width(100)))
@@ -99,7 +99,7 @@ namespace SerenityAITranslator.Editor.Services.Settings.Views
                     var result = UiTools.DisplayRemovePromtDialog();
                     if (result)
                     {
-                        _context.TranslatePromtSettings.Settings.Remove(promtData);
+                        _context.TtsPromtSettings.Settings.Remove(promtData);
                         _context.Save();
                     }
                 }

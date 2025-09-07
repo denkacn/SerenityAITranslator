@@ -2,6 +2,7 @@ using SerenityAITranslator.Editor.Services.Common.Collections;
 using SerenityAITranslator.Editor.Services.Translation.Collections;
 using SerenityAITranslator.Editor.Services.Translation.Managers;
 using SerenityAITranslator.Editor.Services.Tts.Collections;
+using SerenityAITranslator.Editor.Services.Tts.Managers;
 using SerenityAITranslator.Editor.Session.Models;
 using UnityEditor;
 
@@ -10,23 +11,28 @@ namespace SerenityAITranslator.Editor.Context
     public class SerenityContext
     {
         public SessionData SessionData { get; private set; }
-        public PromtSettingsCollection PromtSettings { get; private set; }
+        public PromtSettingsCollection TranslatePromtSettings { get; private set; }
         public TranslateProvidersConfigurationCollection TranslateProvidersConfigurations { get; private set; }
         public TranslateProvidersSettingCollection TranslateProvidersSetting { get; private set; }
         public TtsProvidersConfigurationCollection TtsProvidersConfigurations { get; private set; }
+        public PromtSettingsCollection TtsPromtSettings { get; private set; }
+        
         public TranslateManager TranslateManager  { get; private set; }
+        public TtsManager TtsManager { get; private set; }
         
         public void Init(SessionData sessionData, 
             PromtSettingsCollection promtSettings,
             TranslateProvidersConfigurationCollection translateProvidersConfigurations,
             TranslateProvidersSettingCollection translateProvidersSetting,
-            TtsProvidersConfigurationCollection ttsProvidersConfigurations)
+            TtsProvidersConfigurationCollection ttsProvidersConfigurations,
+            PromtSettingsCollection ttsPromtSettings)
         {
             SessionData = sessionData;
-            PromtSettings = promtSettings;
+            TranslatePromtSettings = promtSettings;
             TranslateProvidersConfigurations = translateProvidersConfigurations;
             TranslateProvidersSetting = translateProvidersSetting;
             TtsProvidersConfigurations = ttsProvidersConfigurations;
+            TtsPromtSettings = ttsPromtSettings;
         }
         
         public void SetupTranslateManager(TranslateManager translateManager)
@@ -37,9 +43,14 @@ namespace SerenityAITranslator.Editor.Context
         public void Save()
         {
             EditorUtility.SetDirty(SessionData);
-            EditorUtility.SetDirty(PromtSettings);
+            EditorUtility.SetDirty(TranslatePromtSettings);
             EditorUtility.SetDirty(TranslateProvidersConfigurations);
             AssetDatabase.SaveAssets();
+        }
+
+        public void SetupTtsManager(TtsManager ttsManager)
+        {
+            TtsManager = ttsManager;
         }
     }
 }

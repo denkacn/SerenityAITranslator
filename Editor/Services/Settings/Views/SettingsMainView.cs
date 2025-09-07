@@ -54,9 +54,9 @@ namespace SerenityAITranslator.Editor.Services.Settings.Views
                 GUILayout.BeginVertical();
                 
                 _translateProviderView?.Draw();
-                _ttsProviderView.Draw();
                 _translatePromtView?.Draw();
                 
+                _ttsProviderView.Draw();
                 
                 GUILayout.Space(10);
 

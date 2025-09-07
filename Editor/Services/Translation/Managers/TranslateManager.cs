@@ -293,15 +293,15 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
             var translationSessionData = _context.SessionData.TranslationSessionData;
             
             return
-                $"BaseLanguage: {_context.SessionData.TranslationSessionData.BaseLanguage}\n" +
-                $"TranslateProvider: {_context.SessionData.TranslationSessionData.TranslateProvider?.GetType().Name}\n" +
-                $"PromtFactory: {_context.SessionData.TranslationSessionData.PromtFactory.GetType().Name}\n" +
-                $"Host: {string.Concat(_context.SessionData.TranslationSessionData.TranslateSettings?.Host, _context.SessionData.TranslationSessionData.TranslateSettings?.Endpoint)}\n" +
-                $"Model: {_context.SessionData.TranslationSessionData.TranslateSettings?.Model}\n" +
-                $"Promt: {(string.IsNullOrEmpty(translationSessionData.SelectedPromt) ? DefaultPromt : translationSessionData.SelectedPromt)}";
+                $"BaseLanguage: <color=#ffc83d>{_context.SessionData.TranslationSessionData.BaseLanguage}</color>\n" +
+                $"TranslateProvider: <color=#ffc83d>{_context.SessionData.TranslationSessionData.TranslateProvider?.GetType().Name}</color>\n" +
+                $"PromtFactory: <color=#ffc83d>{_context.SessionData.TranslationSessionData.PromtFactory.GetType().Name}</color>\n" +
+                $"Host: <color=#ffc83d>{string.Concat(_context.SessionData.TranslationSessionData.TranslateSettings?.Host, _context.SessionData.TranslationSessionData.TranslateSettings?.Endpoint)}</color>\n" +
+                $"Model: <color=#ffc83d>{_context.SessionData.TranslationSessionData.TranslateSettings?.Model}</color>\n" +
+                $"Promt: <color=#ffc83d>{(string.IsNullOrEmpty(translationSessionData.SelectedPromt) ? DefaultPromt : translationSessionData.SelectedPromt)}</color>";
         }
         
-        public void SaveSession()
+        private void SaveSession()
         {
             _context.Save();
         }
