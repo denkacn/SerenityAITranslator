@@ -80,10 +80,10 @@ namespace SerenityAITranslator.Editor.Services.Settings.Views
             _newTranslateProviderSettings.Host = EditorGUILayout.TextField("Host", _newTranslateProviderSettings.Host,GUILayout.Width(250));
             
             EditorGUIUtility.labelWidth = UiTools.GetLabelWidth("Endpoint"); 
-            _newTranslateProviderSettings.Endpoint = EditorGUILayout.TextField("Endpoint", _newTranslateProviderSettings.Endpoint,GUILayout.Width(250));
+            _newTranslateProviderSettings.Endpoint = EditorGUILayout.TextField("Endpoint", _newTranslateProviderSettings.Endpoint,GUILayout.Width(200));
             
             EditorGUIUtility.labelWidth = UiTools.GetLabelWidth("Token"); 
-            _newTranslateProviderSettings.Token = EditorGUILayout.TextField("Token", _newTranslateProviderSettings.Token,GUILayout.Width(250));
+            _newTranslateProviderSettings.Token = EditorGUILayout.TextField("Token", _newTranslateProviderSettings.Token,GUILayout.Width(150));
             
             if (GUILayout.Button("File", _newTranslateProviderSettings.IsTokenFromFile? UiStyles.ButtonStyleGreen : EditorStyles.miniButton))
             {
@@ -101,8 +101,11 @@ namespace SerenityAITranslator.Editor.Services.Settings.Views
             }
             
             EditorGUIUtility.labelWidth = UiTools.GetLabelWidth("Model"); 
-            _newTranslateProviderSettings.Model = EditorGUILayout.TextField("Model", _newTranslateProviderSettings.Model,GUILayout.Width(250));
+            _newTranslateProviderSettings.Model = EditorGUILayout.TextField("Model", _newTranslateProviderSettings.Model,GUILayout.Width(200));
 
+            EditorGUIUtility.labelWidth = UiTools.GetLabelWidth("Voice"); 
+            _newTranslateProviderSettings.VoiceName = EditorGUILayout.TextField("Voice", _newTranslateProviderSettings.VoiceName,GUILayout.Width(200));
+            
             EditorGUIUtility.labelWidth = originalLabelWidth;
             
             GUILayout.FlexibleSpace();
@@ -140,10 +143,13 @@ namespace SerenityAITranslator.Editor.Services.Settings.Views
                 EditorGUILayout.LabelField(provider.ProviderType.ToString(), GUILayout.Width(100));
                 EditorGUILayout.LabelField(provider.Host, GUILayout.Width(250));
                 EditorGUILayout.LabelField(provider.Endpoint, GUILayout.Width(200));
-                EditorGUILayout.LabelField(provider.IsTokenFromFile ? "From File" : string.IsNullOrEmpty(provider.Token) ? "" : "*****", GUILayout.Width(200));
+                EditorGUILayout.LabelField(provider.IsTokenFromFile ? "From File" : string.IsNullOrEmpty(provider.Token) ? "" : "*****", GUILayout.Width(100));
                 EditorGUILayout.LabelField(provider.Model, GUILayout.Width(200));
+                EditorGUILayout.LabelField(provider.VoiceName, GUILayout.Width(200));
                 
-                var isSelected = _context.TranslateManager.SelectedTranslateProviderId == provider.Id;
+                GUILayout.FlexibleSpace();
+                
+                var isSelected = _context.TtsManager.SelectedTtsProviderId == provider.Id;
 
                 if (GUILayout.Button("Select", isSelected? UiStyles.ButtonStyleGreen : EditorStyles.miniButton, GUILayout.Width(100)))
                 {
@@ -160,7 +166,7 @@ namespace SerenityAITranslator.Editor.Services.Settings.Views
                     }
                 }
 
-                GUILayout.FlexibleSpace();
+                //GUILayout.FlexibleSpace();
                 EditorGUILayout.EndHorizontal();
                 
                 GUILayout.Space(10);

@@ -11,6 +11,8 @@ namespace SerenityAITranslator.Editor.Services.Tts.Managers
     {
         private readonly SerenityContext _context;
         
+        public string SelectedTtsProviderId => _context.SessionData.TtsSessionData.TtsSettings != null ? _context.SessionData.TtsSessionData.TtsSettings.Id : string.Empty;
+        
         public TtsManager(SerenityContext context)
         {
             _context = context;
@@ -33,7 +35,7 @@ namespace SerenityAITranslator.Editor.Services.Tts.Managers
         {
             var translationSessionData = _context.SessionData.TtsSessionData;
             translationSessionData.ProviderId = provider.Id;
-            translationSessionData.TranslateSettings = provider;
+            translationSessionData.TtsSettings = provider;
             
             switch (provider.ProviderType)
             {

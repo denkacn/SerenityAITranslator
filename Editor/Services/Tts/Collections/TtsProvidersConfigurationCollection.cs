@@ -14,6 +14,7 @@ namespace SerenityAITranslator.Editor.Services.Tts.Collections
     [Serializable]
     public class TtsProvidersConfigurationItem : BaseProvidersConfigurationItem
     {
+        public string VoiceName;
         public TtsProviderType ProviderType;
 
         public bool IsTokenExist => !string.IsNullOrEmpty(Token) || !string.IsNullOrEmpty(TokenFilePath);

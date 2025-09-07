@@ -21,6 +21,13 @@ namespace SerenityAITranslator.Editor.Services.Tts.Views
         
         public override void Draw()
         {
+            if (string.IsNullOrEmpty(_context.SessionData.TtsSessionData.ProviderId))
+            {
+                EditorGUILayout.HelpBox("Create and select TTS Providers to continue editing.",
+                    MessageType.Info);
+                return;
+            }
+            
             _sourceAssetProviderView?.Draw();
             _ttsSettingsButtonView?.Draw();
             _termsView?.Draw();

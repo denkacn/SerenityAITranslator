@@ -12,6 +12,7 @@ namespace SerenityAITranslator.Editor.Services.Settings.Views
         private TranslateProviderView _translateProviderView;
         private TranslatePromtView _translatePromtView;
         private TtsProviderView _ttsProviderView;
+        private TtsPromtView _ttsPromtView;
         
         public SettingsMainView(EditorWindow owner, SerenityContext context) : base(owner, context){}
 
@@ -20,6 +21,7 @@ namespace SerenityAITranslator.Editor.Services.Settings.Views
             _translateProviderView = new TranslateProviderView(_owner, _context);
             _translatePromtView = new TranslatePromtView(_owner, _context);
             _ttsProviderView = new TtsProviderView(_owner, _context);
+            _ttsPromtView = new TtsPromtView(_owner, _context);
         }
 
         public override void Draw()
@@ -56,7 +58,8 @@ namespace SerenityAITranslator.Editor.Services.Settings.Views
                 _translateProviderView?.Draw();
                 _translatePromtView?.Draw();
                 
-                _ttsProviderView.Draw();
+                _ttsProviderView?.Draw();
+                _ttsPromtView?.Draw();
                 
                 GUILayout.Space(10);
 

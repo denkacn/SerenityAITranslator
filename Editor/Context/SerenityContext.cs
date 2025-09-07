@@ -45,6 +45,8 @@ namespace SerenityAITranslator.Editor.Context
             EditorUtility.SetDirty(SessionData);
             EditorUtility.SetDirty(TranslatePromtSettings);
             EditorUtility.SetDirty(TranslateProvidersConfigurations);
+            EditorUtility.SetDirty(TtsPromtSettings);
+            EditorUtility.SetDirty(TtsProvidersConfigurations);
             AssetDatabase.SaveAssets();
         }
 
