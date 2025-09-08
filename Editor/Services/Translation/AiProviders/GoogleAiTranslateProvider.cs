@@ -10,7 +10,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.AiProviders
 {
     public class GoogleAiTranslateProvider : BaseTranslateProvider
     {
-        public override async Task<TranslatedData> GetTranslate(TranslatedPromtData promtData, TranslateProviderConfigurationItem settings, PromtFactoryBase promtFactory)
+        public override async Task<TranslatedResultData> GetTranslate(TranslatedPromtData promtData, TranslateProviderConfigurationItem settings, PromtFactoryBase promtFactory)
         {
             var apiKey = await GetToken(settings);
             var url = $"{string.Concat(settings.Host, settings.Endpoint)}{settings.Model}:generateContent";
@@ -56,7 +56,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.AiProviders
                                 result = content.Substring(1, content.Length - 2);
                             }
                             
-                            return new TranslatedData(promtData.Term, result);
+                            return new TranslatedResultData(promtData.Term, result);
                         }
                     }
                     else
@@ -66,7 +66,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.AiProviders
                 }
             }
             
-            return new TranslatedData(promtData.Term, string.Empty).Failure();
+            return new TranslatedResultData(promtData.Term, string.Empty).Failure();
         }
         
         [System.Serializable]

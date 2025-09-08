@@ -10,7 +10,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.AiProviders
 {
     public abstract class BaseTranslateProvider : IAiTranslateProvider
     {
-        public abstract Task<TranslatedData> GetTranslate(TranslatedPromtData promtData,
+        public abstract Task<TranslatedResultData> GetTranslate(TranslatedPromtData promtData,
             TranslateProviderConfigurationItem settings, PromtFactoryBase promtFactory);
 
         protected async Task<string> GetToken(TranslateProviderConfigurationItem settings)

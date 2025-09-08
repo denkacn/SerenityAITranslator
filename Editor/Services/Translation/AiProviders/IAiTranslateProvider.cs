@@ -7,6 +7,6 @@ namespace SerenityAITranslator.Editor.Services.Translation.AiProviders
 {
     public interface IAiTranslateProvider
     {
-        Task<TranslatedData> GetTranslate(TranslatedPromtData promtData, TranslateProviderConfigurationItem settings, PromtFactoryBase promtFactory);
+        Task<TranslatedResultData> GetTranslate(TranslatedPromtData promtData, TranslateProviderConfigurationItem settings, PromtFactoryBase promtFactory);
     }
 }

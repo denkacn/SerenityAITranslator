@@ -74,6 +74,18 @@ namespace SerenityAITranslator.Editor.Tools
             normal = { textColor = UiTools.HexToColor("#fff600") }
         };
 
+        public static readonly GUIStyle ButtonStyleGreenText = new GUIStyle(GUI.skin.button)
+        {
+            normal =
+            {
+                textColor = UiTools.HexToColor("#3CFF00"),
+            },
+            hover =
+            {
+                textColor = UiTools.HexToColor("#3CFF00"),
+            }
+        };
+
         public static readonly GUIStyle ButtonStyleGreen = new GUIStyle(GUI.skin.button)
         {
             normal =

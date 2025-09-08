@@ -65,12 +65,12 @@ namespace SerenityAITranslator.Editor.Services.Tts.Views
         
         private readonly HttpClient _httpClient = new HttpClient();
         
-        private async Task TestGetVoiceCoqui()
+        /*private async Task TestGetVoiceCoqui()
         {
             var voiceClient = new CoquiTtsProvider();
             await voiceClient.TextToSpeechAsync("Here's how you can send a request from C# to Coqui TTS - using a local server hosted with tts-server and making HTTP calls to it", "Marcos Rudaski", "en");
             
-        }
+        }*/
         
         public async Task<bool> CheckServerStatusAsync()
         {

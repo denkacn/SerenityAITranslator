@@ -9,6 +9,7 @@ namespace SerenityAITranslator.Editor.Session.Models
     {
         public string ProviderId;
         public string SelectedPromt;
+        public string VoicesLibraryPath;
         
         public TtsProvidersConfigurationItem TtsSettings;
         public IAITtsProvider TranslateProvider;

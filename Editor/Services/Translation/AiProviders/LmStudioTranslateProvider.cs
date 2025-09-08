@@ -12,7 +12,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.AiProviders
 {
     public class LmStudioTranslateProvider : BaseTranslateProvider
     {
-        public override async Task<TranslatedData> GetTranslate(TranslatedPromtData promtData, TranslateProviderConfigurationItem settings, PromtFactoryBase promtFactory)
+        public override async Task<TranslatedResultData> GetTranslate(TranslatedPromtData promtData, TranslateProviderConfigurationItem settings, PromtFactoryBase promtFactory)
         {
             var request = new ChatRequest()
             {
@@ -60,7 +60,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.AiProviders
                     catch (Exception exp)
                     {
                         Debug.LogError(exp);
-                        return new TranslatedData(promtData.Term, string.Empty).Failure();
+                        return new TranslatedResultData(promtData.Term, string.Empty).Failure();
                     }
                     
                     if (response?.choices?.Length > 0 && response?.choices[0].message.content != null)
@@ -77,7 +77,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.AiProviders
                                 result = content.Substring(1, content.Length - 2);
                             }
                             
-                            return new TranslatedData(promtData.Term, result);
+                            return new TranslatedResultData(promtData.Term, result);
                         }
                     }
                     else
@@ -85,12 +85,12 @@ namespace SerenityAITranslator.Editor.Services.Translation.AiProviders
                         Debug.LogError("[LmStudioTranslateProvider] The answer does not contain the expected data.");
                     }
 
-                    return new TranslatedData(promtData.Term, string.Empty).Failure();
+                    return new TranslatedResultData(promtData.Term, string.Empty).Failure();
                 }
 
             }
 
-            return new TranslatedData(promtData.Term, string.Empty).Failure();
+            return new TranslatedResultData(promtData.Term, string.Empty).Failure();
         }
         
         private struct ChatRequest

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using SerenityAITranslator.Editor.Context;
 using SerenityAITranslator.Editor.Services.Common.Collections;
 using SerenityAITranslator.Editor.Services.Common.Enums;
@@ -51,21 +52,33 @@ namespace SerenityAITranslator.Editor.Windows
             //GUILayout.Label("Select Service:");
             GUILayout.BeginHorizontal(UiStyles.OddRowStyle);
             
-            if (GUILayout.Button(new GUIContent(" Settings", AssetsUtility.LoadIcon("icon-settings.png")), GUILayout.Width(100), GUILayout.Height(25)))
+            var isSelected = _selectedView is SettingsMainView;
+            if (GUILayout.Button(new GUIContent(" Settings", AssetsUtility.LoadIcon("icon-settings.png")),
+                    isSelected ? UiStyles.ButtonStyleGreenText : GUI.skin.button, 
+                    GUILayout.Width(100),
+                    GUILayout.Height(25)))
             {
                 SelectService(SerenityServiceType.Settings);
             }
-            
-            if (GUILayout.Button(new GUIContent(" Translate", AssetsUtility.LoadIcon("icon-translate.png")), GUILayout.Width(100), GUILayout.Height(25)))
+
+            isSelected = _selectedView is TranslateMainView;
+            if (GUILayout.Button(new GUIContent(" Translate", AssetsUtility.LoadIcon("icon-translate.png")),
+                    isSelected ? UiStyles.ButtonStyleGreenText : GUI.skin.button, 
+                    GUILayout.Width(100),
+                    GUILayout.Height(25)))
             {
                 SelectService(SerenityServiceType.Translation);
             }
-            
-            if (GUILayout.Button(new GUIContent(" Voice", AssetsUtility.LoadIcon("icon-speaker.png")), GUILayout.Width(100), GUILayout.Height(25)))
+
+            isSelected = _selectedView is TtsMainView;
+            if (GUILayout.Button(new GUIContent(" Voice", AssetsUtility.LoadIcon("icon-speaker.png")),
+                    isSelected ? UiStyles.ButtonStyleGreenText : GUI.skin.button, 
+                    GUILayout.Width(100),
+                    GUILayout.Height(25)))
             {
                 SelectService(SerenityServiceType.Voice);
             }
-            
+
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
             
@@ -118,6 +131,17 @@ namespace SerenityAITranslator.Editor.Windows
 
             var ttsManager = new TtsManager(_context);
             _context.SetupTtsManager(ttsManager);
+
+            if (!string.IsNullOrEmpty(_context.SessionData.TtsSessionData.VoicesLibraryPath))
+            {
+                var voicesCollection =
+                    AssetsUtility.LoadOrCreate<VoicesCollection>(_context.SessionData.TtsSessionData.VoicesLibraryPath);
+                
+                _context.SetupVoicesCollection(voicesCollection);
+            }
+            
+            var languageConverterData = AssetsUtility.LoadOrCreate<LanguageConverterData>("Assets/Editor/SerenityAi/LanguageConverterData.asset");
+            _context.SetupLanguageConverterData(languageConverterData);
         }
     }
 }

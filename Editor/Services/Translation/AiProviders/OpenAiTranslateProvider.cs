@@ -13,7 +13,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.AiProviders
 {
     public class OpenAiTranslateProvider : BaseTranslateProvider
     {
-        public override async Task<TranslatedData> GetTranslate(TranslatedPromtData promtData, TranslateProviderConfigurationItem settings, PromtFactoryBase promtFactory)
+        public override async Task<TranslatedResultData> GetTranslate(TranslatedPromtData promtData, TranslateProviderConfigurationItem settings, PromtFactoryBase promtFactory)
         {
             var request = new Request()
             {
@@ -59,7 +59,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.AiProviders
                     catch (Exception exp)
                     {
                         Debug.LogError(exp);
-                        return new TranslatedData(promtData.Term, string.Empty).Failure();
+                        return new TranslatedResultData(promtData.Term, string.Empty).Failure();
                     }
                     
                     var output = response?.output.Find(o=>o.type == "message");
@@ -76,16 +76,16 @@ namespace SerenityAITranslator.Editor.Services.Translation.AiProviders
                                 result = content.Substring(1, content.Length - 2);
                             }
                             
-                            return new TranslatedData(promtData.Term, result);
+                            return new TranslatedResultData(promtData.Term, result);
                         }
                     }
 
-                    return new TranslatedData(promtData.Term, string.Empty).Failure();
+                    return new TranslatedResultData(promtData.Term, string.Empty).Failure();
                 }
 
             }
 
-            return new TranslatedData(promtData.Term, string.Empty).Failure();
+            return new TranslatedResultData(promtData.Term, string.Empty).Failure();
         }
         
         private struct Request

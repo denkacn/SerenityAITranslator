@@ -4,6 +4,8 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using SerenityAITranslator.Editor.Services.Tts.Collections;
+using SerenityAITranslator.Editor.Services.Tts.Models;
 
 namespace SerenityAITranslator.Editor.Services.Tts.AiProviders
 {
@@ -167,6 +169,11 @@ namespace SerenityAITranslator.Editor.Services.Tts.AiProviders
     
             [JsonProperty("mimeType")]
             public string MimeType { get; set; }
+        }
+
+        public Task<TtsResultData> GetTranslate(TtsPromtData promtData, TtsProvidersConfigurationItem settings, string promt)
+        {
+            throw new NotImplementedException();
         }
     }
 }

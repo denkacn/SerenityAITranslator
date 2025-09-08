@@ -17,6 +17,9 @@ namespace SerenityAITranslator.Editor.Context
         public TtsProvidersConfigurationCollection TtsProvidersConfigurations { get; private set; }
         public PromtSettingsCollection TtsPromtSettings { get; private set; }
         
+        public VoicesCollection VoicesCollection { get; private set; }
+        public LanguageConverterData LanguageConverterData { get; private set; }
+        
         public TranslateManager TranslateManager  { get; private set; }
         public TtsManager TtsManager { get; private set; }
         
@@ -53,6 +56,16 @@ namespace SerenityAITranslator.Editor.Context
         public void SetupTtsManager(TtsManager ttsManager)
         {
             TtsManager = ttsManager;
+        }
+        
+        public void SetupVoicesCollection(VoicesCollection voicesCollection)
+        {
+            VoicesCollection = voicesCollection;
+        }
+
+        public void SetupLanguageConverterData(LanguageConverterData languageConverterData)
+        {
+            LanguageConverterData = languageConverterData;
         }
     }
 }

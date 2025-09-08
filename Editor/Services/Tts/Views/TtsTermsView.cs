@@ -75,20 +75,20 @@ namespace SerenityAITranslator.Editor.Services.Tts.Views
                     EditorGUILayout.LabelField(translatedText, UiStyles.LabelRowStyle, GUILayout.Width(400), GUILayout.Height(height));
                 }*/
                 
-                if (_context.TranslateManager.IsTranslateProviderAndTranslateSettingSetup)
+                if (_context.TtsManager.IsTtsProviderAndTtsSettingSetup)
                 {
-                    if (GUILayout.Button("Translate", GUILayout.Width(80)))
+                    if (GUILayout.Button("Get Voice", GUILayout.Width(80)))
                     {
-                        _context.TranslateManager.TranslateOne(row, Repaint);
+                        _context.TtsManager.TranslateOne(row, Repaint);
                         GUI.FocusControl(null);
                     }
                     
-                    if (GUILayout.Button(row.IsShowTranslated? "Translated" : "Original", row.IsShowTranslated? UiStyles.ButtonStyleGreen : EditorStyles.miniButton, GUILayout.Width(120)))
+                    /*if (GUILayout.Button(row.IsShowTranslated? "Translated" : "Original", row.IsShowTranslated? UiStyles.ButtonStyleGreen : EditorStyles.miniButton, GUILayout.Width(120)))
                     {
                         row.IsShowTranslated = !row.IsShowTranslated;
-                    }
+                    }*/
 
-                    if (row.IsShowTranslated)
+                    /*if (row.IsShowTranslated)
                     {
                         var editButtonContent = new GUIContent("E", "Edit");
                         if (GUILayout.Button(editButtonContent, GUILayout.Width(20)))
@@ -103,10 +103,10 @@ namespace SerenityAITranslator.Editor.Services.Tts.Views
                                 GUI.FocusControl(null);
                             }
                         }
-                    }
+                    }*/
                 }
 
-                if (!string.IsNullOrEmpty(row.TranslatedText))
+                /*if (!string.IsNullOrEmpty(row.TranslatedText))
                 {
                     if (row.IsShowTranslated && row.TranslatedText != row.OriginalText)
                     {
@@ -132,7 +132,7 @@ namespace SerenityAITranslator.Editor.Services.Tts.Views
                         row.TranslatedText != row.OriginalText
                             ? UiStyles.LabelRowStyleGreen
                             : UiStyles.LabelRowStyleYellow, GUILayout.Width(15));
-                }
+                }*/
                 
                 GUILayout.FlexibleSpace();
                 EditorGUILayout.EndHorizontal();

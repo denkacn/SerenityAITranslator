@@ -50,7 +50,7 @@ namespace SerenityAITranslator.Extension.Editor.Services.Translation.SourceAsset
         {
             CreateCacheData();
 
-            return _translatedTermsByGroupsData[group];
+            return _translatedTermsByGroupsData.GetValueOrDefault(group);
         }
         
         public List<string> GetGroups()
@@ -76,7 +76,7 @@ namespace SerenityAITranslator.Extension.Editor.Services.Translation.SourceAsset
 
         private void CreateCacheData()
         {
-            if (_translatedTermsData == null || _translatedTermsData.Count == 0)
+            if (_translatedTermsData == null || _translatedTermsData.Count == 0 || _translatedTermsByGroupsData == null)
             {
                 _translatedTermsByGroupsData = new Dictionary<string, List<TranslatedTermsData>>();
                 _translatedTermsData = new List<TranslatedTermsData>();

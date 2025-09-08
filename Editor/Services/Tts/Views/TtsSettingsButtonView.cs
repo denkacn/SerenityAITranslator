@@ -58,6 +58,33 @@ namespace SerenityAITranslator.Editor.Services.Tts.Views
             
             GUILayout.BeginHorizontal();
             
+            var ttsSessionData = _context.SessionData.TtsSessionData;
+            if (string.IsNullOrEmpty(ttsSessionData.VoicesLibraryPath))
+            {
+                EditorGUIUtility.labelWidth = UiTools.GetLabelWidth("Voice Library"); 
+            
+                ttsSessionData.VoicesLibraryPath = EditorGUILayout.TextField("Voice Library", ttsSessionData.VoicesLibraryPath,GUILayout.Width(400));
+            
+                GUILayout.Space(10);
+            
+                if (GUILayout.Button("Create Voice Library"))
+                {
+                    _context.TtsManager.CreateVoiceLibrary();
+                }
+                
+                GUILayout.Space(10);
+            }
+            else
+            {
+                GUILayout.Label("Voice Library: " + ttsSessionData.VoicesLibraryPath);
+                GUILayout.Space(10);
+            }
+            
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
+            
+            GUILayout.BeginHorizontal();
+            
             EditorGUIUtility.labelWidth = UiTools.GetLabelWidth("Filter"); 
             
             _filter = EditorGUILayout.TextField("Filter", _filter,GUILayout.Width(400));
