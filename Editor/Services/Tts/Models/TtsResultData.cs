@@ -4,8 +4,11 @@ namespace SerenityAITranslator.Editor.Services.Tts.Models
 {
     public class TtsResultData : BaseResultData
     {
-        public TtsResultData()
+        public string Extension;
+        
+        public TtsResultData(string extension)
         {
+            Extension = extension;
             IsNoError = true;       
         }
         

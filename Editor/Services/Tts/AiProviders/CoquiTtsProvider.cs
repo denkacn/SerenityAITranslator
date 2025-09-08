@@ -10,6 +10,8 @@ namespace SerenityAITranslator.Editor.Services.Tts.AiProviders
 {
     public class CoquiTtsProvider : IAITtsProvider
     {
+        private const string Extension = ".wav";
+        
         private HttpClient _httpClient;
         
         public async Task<TtsResultData> GetTranslate(TtsPromtData promtData, TtsProvidersConfigurationItem settings, string promt)
@@ -34,11 +36,11 @@ namespace SerenityAITranslator.Editor.Services.Tts.AiProviders
                 
                 if (result != null)
                 {
-                    await File.WriteAllBytesAsync(promtData.Path + ".wav", result);
-
-                    Debug.Log("Audio saved as " + promtData.Path);
+                    Debug.Log("Audio saved as " + promtData.Path + Extension);
                     
-                    return new TtsResultData();
+                    await File.WriteAllBytesAsync(promtData.Path + Extension, result);
+                    
+                    return new TtsResultData(Extension);
                 }
             }
             catch (Exception ex)
@@ -46,7 +48,7 @@ namespace SerenityAITranslator.Editor.Services.Tts.AiProviders
                 Console.WriteLine($"Ошибка: {ex.Message}");
             }
             
-            return new TtsResultData().Failure();
+            return new TtsResultData(Extension).Failure();
         }
         
         /*public CoquiTtsProvider()

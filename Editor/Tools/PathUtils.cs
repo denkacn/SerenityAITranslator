@@ -12,5 +12,10 @@ namespace SerenityAITranslator.Editor.Tools
 
             return fullDir;
         }
+
+        public static string GetDirectoryName(string assetPath)
+        {
+            return Path.GetDirectoryName(assetPath);
+        }
     }
 }

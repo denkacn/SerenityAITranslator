@@ -10,6 +10,7 @@ using SerenityAITranslator.Editor.Services.Tts.AiProviders;
 using SerenityAITranslator.Editor.Services.Tts.Collections;
 using SerenityAITranslator.Editor.Services.Tts.Models;
 using SerenityAITranslator.Editor.Tools;
+using UnityEngine;
 
 namespace SerenityAITranslator.Editor.Services.Tts.Managers
 {
@@ -96,20 +97,57 @@ namespace SerenityAITranslator.Editor.Services.Tts.Managers
                 _context.SetupVoicesCollection(voicesCollection);
             }
         }
+
+        public void Play(TranslatedRowData translatedData)
+        {
+            var language = _context.SessionData.TranslationSessionData.SourceLanguage;
+            var voiceData = _context.VoicesCollection.Get(translatedData.Term, language);
+            
+            if (voiceData != null)
+            {
+                var audioClip = voiceData.VoiceClip;
+                if (audioClip != null)
+                {
+                    AudioClipTools.Play(audioClip);
+                }
+            }
+        }
         
         private async Task TranslateOneAsync(TranslatedRowData translatedData, Action onCompleted, CancellationToken cancellationToken = default)
         {
             var ttsSessionData = _context.SessionData.TtsSessionData;
-            var path = Path.Combine(PathUtils.GetFullDirectory(ttsSessionData.VoicesLibraryPath), FileNameSanitizer.Sanitize(translatedData.Term));
             var correctLanguage = _context.LanguageConverterData.ConvertLanguageName(_context.SessionData.TranslationSessionData.SourceLanguage);
+            var path = Path.Combine(PathUtils.GetFullDirectory(ttsSessionData.VoicesLibraryPath), $"{correctLanguage}_{FileNameSanitizer.Sanitize(translatedData.Term)}");
             var promtData = new TtsPromtData(translatedData.SourceText, correctLanguage, path);
             var result = await ttsSessionData.TranslateProvider
                 .GetTranslate(promtData, ttsSessionData.TtsSettings, ttsSessionData.SelectedPromt);
 
             if (!cancellationToken.IsCancellationRequested && result.IsNoError)
             {
-                //translatedData.TranslatedText = result.Translation;
-                //translatedData.IsShowTranslated = true;
+                UnityEditor.AssetDatabase.Refresh();
+
+                var audioClipAssetPath = Path.Combine(PathUtils.GetDirectoryName(ttsSessionData.VoicesLibraryPath),
+                    $"{correctLanguage}_{FileNameSanitizer.Sanitize(translatedData.Term)}{result.Extension}");
+                var audioClip = AssetsUtility.Load<AudioClip>(audioClipAssetPath);
+                
+                Debug.Log("audioClipAssetPath: " + audioClipAssetPath);
+                Debug.Log(audioClip);
+                
+                if (audioClip != null)
+                {
+                    var voiceItem = new VoiceItem()
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        Language = _context.SessionData.TranslationSessionData.SourceLanguage,
+                        Term = translatedData.Term,
+                        TtsInfo = ttsSessionData.TranslateProvider.GetType().ToString(),
+                        VoiceClip = audioClip
+                    };
+                    
+                    _context.VoicesCollection.Add(voiceItem);
+                    _context.Save();
+                }
+                
                 onCompleted?.Invoke();
             }
         }

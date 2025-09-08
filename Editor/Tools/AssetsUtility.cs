@@ -30,6 +30,12 @@ namespace SerenityAITranslator.Editor.Tools
 
             return asset;
         }
+        
+        public static T Load<T>(string assetPath) where T : Object
+        {
+            var asset = AssetDatabase.LoadAssetAtPath<T>(assetPath);
+            return asset;
+        }
 
         public static bool IsAssetExists(string assetPath)
         {
