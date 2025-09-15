@@ -23,7 +23,16 @@ namespace SerenityAITranslator.Editor.Services.Tts.Collections
             }
             else
             {
-                pack.VoiceItems.Add(voiceItem);
+                var voiceItemInPack = pack.VoiceItems.Find(v => v.Language == voiceItem.Language);
+                if (voiceItemInPack != null)
+                {
+                    voiceItemInPack.VoiceClip = voiceItem.VoiceClip;
+                    voiceItemInPack.TtsInfo = voiceItem.TtsInfo;
+                }
+                else
+                {
+                    pack.VoiceItems.Add(voiceItem);
+                }
             }
         }
 
@@ -31,6 +40,37 @@ namespace SerenityAITranslator.Editor.Services.Tts.Collections
         {
             var pack = Voices.Find(p => p.Term == term);
             return pack?.VoiceItems.Find(v => v.Language == language);
+        }
+
+        public bool IsExist(string term, string language)
+        {
+            var pack = Voices.Find(p => p.Term == term);
+            return pack?.VoiceItems.Find(v => v.Language == language) != null;
+        }
+
+        public List<string> GetLanguagesForTerms(string term, LanguageConverterData languageConverter)
+        {
+            var pack = Voices.Find(p => p.Term == term);
+            var languages = new List<string>();
+            if (pack != null)
+            {
+                foreach (var voiceItem in pack.VoiceItems)
+                {
+                    languages.Add(languageConverter.ConvertLanguageName(voiceItem.Language));
+                }
+            }
+
+            return languages;
+        }
+
+        public void Remove(string term, string language)
+        {
+            var pack = Voices.Find(p => p.Term == term);
+            var voiceItem = pack.VoiceItems.Find(v => v.Language == language);
+            
+            DestroyImmediate(voiceItem.VoiceClip, true);
+            
+            pack.VoiceItems.RemoveAll(l => l.Language == language);
         }
     }
     

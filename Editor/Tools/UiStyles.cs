@@ -33,6 +33,11 @@ namespace SerenityAITranslator.Editor.Tools
                 background = UiTools.MakeColorTexture(UiTools.HexToColor("#222222"), 1, 1)
             }
         };
+        
+        public static readonly GUIStyle WrapTextAreaStyle = new GUIStyle(EditorStyles.textArea)
+        {
+            wordWrap = true
+        };
 
         public static readonly GUIStyle LabelStyleRich = new GUIStyle(EditorStyles.label)
         {
@@ -83,6 +88,18 @@ namespace SerenityAITranslator.Editor.Tools
             hover =
             {
                 textColor = UiTools.HexToColor("#3CFF00"),
+            }
+        };
+        
+        public static readonly GUIStyle ButtonStyleYellowText = new GUIStyle(GUI.skin.button)
+        {
+            normal =
+            {
+                textColor = UiTools.HexToColor("#ffd03f"),
+            },
+            hover =
+            {
+                textColor = UiTools.HexToColor("#ffd03f"),
             }
         };
 

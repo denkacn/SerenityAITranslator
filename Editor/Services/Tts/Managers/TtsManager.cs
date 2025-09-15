@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using SerenityAITranslator.Editor.Context;
@@ -18,9 +19,11 @@ namespace SerenityAITranslator.Editor.Services.Tts.Managers
     {
         private readonly SerenityContext _context;
         private CancellationTokenSource _ttsCancellationTokenSource = new CancellationTokenSource();
+        private TranslatedRowData _translatedRowData;
         
         public string SelectedTtsProviderId => _context.SessionData.TtsSessionData.TtsSettings != null ? _context.SessionData.TtsSessionData.TtsSettings.Id : string.Empty;
         public bool IsTtsProviderAndTtsSettingSetup => _context != null && _context.SessionData.TtsSessionData.TranslateProvider != null && _context.SessionData.TtsSessionData.TtsSettings != null;
+        public TranslatedRowData TranslatedRowData => _translatedRowData;
         
         public TtsManager(SerenityContext context)
         {
@@ -100,6 +103,8 @@ namespace SerenityAITranslator.Editor.Services.Tts.Managers
 
         public void Play(TranslatedRowData translatedData)
         {
+            if (AudioClipTools.IsPlaying()) AudioClipTools.StopAll();
+            
             var language = _context.SessionData.TranslationSessionData.SourceLanguage;
             var voiceData = _context.VoicesCollection.Get(translatedData.Term, language);
             
@@ -113,12 +118,17 @@ namespace SerenityAITranslator.Editor.Services.Tts.Managers
             }
         }
         
+        public void Stop()
+        {
+            AudioClipTools.StopAll();
+        }
+        
         private async Task TranslateOneAsync(TranslatedRowData translatedData, Action onCompleted, CancellationToken cancellationToken = default)
         {
             var ttsSessionData = _context.SessionData.TtsSessionData;
             var correctLanguage = _context.LanguageConverterData.ConvertLanguageName(_context.SessionData.TranslationSessionData.SourceLanguage);
             var path = Path.Combine(PathUtils.GetFullDirectory(ttsSessionData.VoicesLibraryPath), $"{correctLanguage}_{FileNameSanitizer.Sanitize(translatedData.Term)}");
-            var promtData = new TtsPromtData(translatedData.SourceText, correctLanguage, path);
+            var promtData = new TtsPromtData(translatedData.SourceText.TrimEnd(), correctLanguage, path);
             var result = await ttsSessionData.TranslateProvider
                 .GetTranslate(promtData, ttsSessionData.TtsSettings, ttsSessionData.SelectedPromt);
 
@@ -127,7 +137,7 @@ namespace SerenityAITranslator.Editor.Services.Tts.Managers
                 UnityEditor.AssetDatabase.Refresh();
 
                 var audioClipAssetPath = Path.Combine(PathUtils.GetDirectoryName(ttsSessionData.VoicesLibraryPath),
-                    $"{correctLanguage}_{FileNameSanitizer.Sanitize(translatedData.Term)}{result.Extension}");
+                    $"{correctLanguage}_{FileNameSanitizer.Sanitize(translatedData.Term)}_{result.Prefix}{result.Extension}");
                 var audioClip = AssetsUtility.Load<AudioClip>(audioClipAssetPath);
                 
                 Debug.Log("audioClipAssetPath: " + audioClipAssetPath);
@@ -140,7 +150,7 @@ namespace SerenityAITranslator.Editor.Services.Tts.Managers
                         Id = Guid.NewGuid().ToString(),
                         Language = _context.SessionData.TranslationSessionData.SourceLanguage,
                         Term = translatedData.Term,
-                        TtsInfo = ttsSessionData.TranslateProvider.GetType().ToString(),
+                        TtsInfo = ttsSessionData.TranslateProvider.GetType().Name,
                         VoiceClip = audioClip
                     };
                     
@@ -150,6 +160,20 @@ namespace SerenityAITranslator.Editor.Services.Tts.Managers
                 
                 onCompleted?.Invoke();
             }
+        }
+
+        public void SetForInfo(TranslatedRowData translatedRowData)
+        {
+            _translatedRowData = translatedRowData;
+        }
+
+        public void DeleteVoice(string term, Action repaint)
+        {
+            var language = _context.SessionData.TranslationSessionData.SourceLanguage;
+            
+            _context.VoicesCollection.Remove(term, language);
+            _context.Save();
+            repaint?.Invoke();
         }
     }
 }

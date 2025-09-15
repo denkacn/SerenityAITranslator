@@ -63,7 +63,8 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
                     if (_editRowId == row.Id)
                     {
                         row.TranslatedText = EditorGUILayout.TextArea(row.TranslatedText, GUILayout.Width(415));
-                        Repaint();
+                        //GUI.FocusControl(null);
+                        //Repaint();
                     }
                     else
                     {

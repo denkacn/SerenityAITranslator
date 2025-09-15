@@ -27,6 +27,7 @@ namespace SerenityAITranslator.Editor.Services.Tts.Views
             
             GUILayout.BeginVertical();
             
+            //Language
             GUILayout.BeginHorizontal();
             
             var translationSessionData = _context.SessionData.TranslationSessionData;
@@ -83,6 +84,7 @@ namespace SerenityAITranslator.Editor.Services.Tts.Views
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
             
+            //Filter
             GUILayout.BeginHorizontal();
             
             EditorGUIUtility.labelWidth = UiTools.GetLabelWidth("Filter"); 
@@ -120,6 +122,48 @@ namespace SerenityAITranslator.Editor.Services.Tts.Views
             
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
+            
+            GUILayout.Space(10);
+            
+            //Info
+            if (_context.TtsManager.TranslatedRowData != null)
+            {
+                var translatedRowData = _context.TtsManager.TranslatedRowData;
+                var voiceItem = _context.VoicesCollection.Get(translatedRowData.Term, translationSessionData.SourceLanguage);
+                GUILayout.BeginHorizontal("helpbox");
+                
+                GUILayout.Label($"Voice Info: {translatedRowData.Term}", UiStyles.LabelStyleRich, GUILayout.Height(30));
+                
+                GUILayout.Label(
+                    $"Languages: [{string.Join(";", _context.VoicesCollection.GetLanguagesForTerms(translatedRowData.Term, _context.LanguageConverterData))}]", GUILayout.Height(30));
+            
+                GUILayout.Space(20);
+                
+                var isPlaying = AudioClipTools.IsPlaying();
+                if (GUILayout.Button(new GUIContent(AssetsUtility.LoadIcon(isPlaying ? "icon-pause.png" : "icon-play.png")), GUILayout.Width(30), GUILayout.Height(30)))
+                {
+                    if (isPlaying)
+                        _context.TtsManager.Stop();
+                    else
+                        _context.TtsManager.Play(translatedRowData);
+                }
+                
+                GUILayout.Space(20);
+                
+                if(voiceItem != null) GUILayout.Label($"TTS Info: {voiceItem.TtsInfo}", UiStyles.LabelStyleRich, GUILayout.Height(30));
+                
+                GUILayout.Space(20);
+                
+                if (GUILayout.Button(new GUIContent("ReConvert to Voice", AssetsUtility.LoadIcon("icon-rewert")), GUILayout.Height(30)))
+                {
+                    _context.TtsManager.TranslateOne(translatedRowData, Repaint);
+                }
+
+                GUILayout.FlexibleSpace();
+                
+                GUILayout.EndHorizontal();
+            }
+            
             
             GUILayout.Space(10);
             GUILayout.EndVertical();

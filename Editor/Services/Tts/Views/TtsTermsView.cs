@@ -49,20 +49,69 @@ namespace SerenityAITranslator.Editor.Services.Tts.Views
                 EditorGUILayout.BeginHorizontal(rowStyle);
                 
                 EditorGUILayout.LabelField(row.Term, UiStyles.LabelRowStyle,GUILayout.Width(200));
-                EditorGUILayout.LabelField(row.SourceText, UiStyles.LabelRowStyle, GUILayout.Width(400), GUILayout.MinHeight(30), GUILayout.MaxHeight(800));
+                //EditorGUILayout.LabelField(row.SourceText, UiStyles.LabelRowStyle, GUILayout.Width(400), GUILayout.MinHeight(30), GUILayout.MaxHeight(800));
+                
+                if (_editRowId == row.Id)
+                {
+                    row.SourceText = EditorGUILayout.TextArea(row.SourceText, UiStyles.WrapTextAreaStyle, GUILayout.Width(415), GUILayout.MinHeight(30), GUILayout.MaxHeight(800));
+                    //GUI.FocusControl(null);
+                    //Repaint();
+                }
+                else
+                {
+                    EditorGUILayout.LabelField(row.SourceText, UiStyles.LabelRowStyle, GUILayout.Width(400), GUILayout.MinHeight(30), GUILayout.MaxHeight(800));
+                }
                 
                 if (_context.TtsManager.IsTtsProviderAndTtsSettingSetup)
                 {
-                    if (GUILayout.Button("Get Voice", GUILayout.Width(80)))
+                    var language = _context.SessionData.TranslationSessionData.SourceLanguage;
+                    if (_context.VoicesCollection.IsExist(row.Term, language))
+                    {
+                        if (GUILayout.Button("Info", UiStyles.ButtonStyleYellowText, GUILayout.Width(80)))
+                        {
+                            _context.TtsManager.SetForInfo(row);
+                        }
+                    }
+                    else
+                    {
+                        if (GUILayout.Button("To Voice", GUILayout.Width(80)))
+                        {
+                            _context.TtsManager.TranslateOne(row, Repaint);
+                            GUI.FocusControl(null);
+                        }
+                    }
+                    
+                    EditorGUIUtility.SetIconSize(new Vector2(10, 10));
+
+                    if (GUILayout.Button(new GUIContent(AssetsUtility.LoadIcon("icon-play.png"), "Play Clip"), GUILayout.Width(20), GUILayout.Height(20)))
+                    {
+                        _context.TtsManager.SetForInfo(row);
+                        _context.TtsManager.Play(row);
+                    }
+                    
+                    if (GUILayout.Button(new GUIContent(AssetsUtility.LoadIcon("icon-switch.png"), "Text to Speech"), GUILayout.Width(20), GUILayout.Height(20)))
                     {
                         _context.TtsManager.TranslateOne(row, Repaint);
-                        GUI.FocusControl(null);
                     }
-                    EditorGUIUtility.SetIconSize(new Vector2(10, 10));
-                    //Debug.Log(AudioClipTools.IsPlaying());
-                    if (GUILayout.Button(new GUIContent(AssetsUtility.LoadIcon("icon-play.png")), GUILayout.Width(40), GUILayout.Height(20)))
+                    
+                    if (GUILayout.Button(new GUIContent(AssetsUtility.LoadIcon("icon-edit.png"), "Edit text"), GUILayout.Width(20), GUILayout.Height(20)))
                     {
-                        _context.TtsManager.Play(row);
+                        if (_editRowId != row.Id)
+                        {
+                            _editRowId = row.Id;
+                        }
+                        else
+                        {
+                            _editRowId = -1;
+                            GUI.FocusControl(null);
+                        }
+                    }
+                    
+                    if (GUILayout.Button(new GUIContent(AssetsUtility.LoadIcon("icon-delete.png"), "Delete"), GUILayout.Width(20), GUILayout.Height(20)))
+                    {
+                        var result = UiTools.DisplayDeleteVoiceDialog();
+
+                        if (result) _context.TtsManager.DeleteVoice(row.Term, Repaint);
                     }
                     
                     EditorGUIUtility.SetIconSize(new Vector2(16, 16));

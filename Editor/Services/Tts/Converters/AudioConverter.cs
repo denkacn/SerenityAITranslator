@@ -3,12 +3,17 @@ using System.Text;
 
 namespace SerenityAITranslator.Editor.Services.Tts.Converters
 {
-    public class AudioConverter
+    public static class AudioConverter
     {
-        public static void ConvertPcmToWav(string pcmPath, string wavPath, int sampleRate = 24000, int channels = 1, int bitsPerSample = 16)
+        public static void ConvertAndSavePcmToWav(string pcmPath, string wavPath, int sampleRate = 24000, int channels = 1, int bitsPerSample = 16)
         {
             var pcmData = File.ReadAllBytes(pcmPath);
 
+            ConvertAndSavePcmToWav(pcmData, wavPath, sampleRate, channels, bitsPerSample);
+        }
+
+        public static void ConvertAndSavePcmToWav(byte[] pcmData, string wavPath, int sampleRate = 24000, int channels = 1, int bitsPerSample = 16)
+        {
             using var stream = new FileStream(wavPath, FileMode.Create);
             using var writer = new BinaryWriter(stream);
             

@@ -64,7 +64,12 @@ namespace SerenityAITranslator.Editor.Tools
         {
             return DisplayDialog("Do you really want to translate all the terms?");
         }
-        
+
+        public static bool DisplayDeleteVoiceDialog()
+        {
+            return DisplayDialog("You are sure that you want to delete the voice file?");
+        }
+
         public static bool DisplayRemoveProviderDialog()
         {
             return DisplayDialog("Do you really want to delete provider?");

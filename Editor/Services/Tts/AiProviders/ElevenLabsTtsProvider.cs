@@ -9,29 +9,27 @@ using SerenityAITranslator.Editor.Services.Tts.Models;
 
 namespace SerenityAITranslator.Editor.Services.Tts.AiProviders
 {
-    public class ElevenLabsTtsProvider : IAITtsProvider
+    public class ElevenLabsTtsProvider : BaseTtsProvider
     {
-        private readonly string _apiKey = "sk_caf85f82415adf253311e446a3215b30bf84622c21783551";
-        private readonly string _apiUrl = "https://api.elevenlabs.io/v1/";
-        private readonly HttpClient _httpClient;
+        private HttpClient _httpClient;
 
-        public ElevenLabsTtsProvider()
+        private const string Extension = ".mp3";
+        private const string Prefix = "elevenlabs";
+        
+        public override async Task<TtsResultData> GetTranslate(TtsPromtData promtData, TtsProvidersConfigurationItem settings, string promt)
         {
-            //_apiKey = apiKey;
+            var token = await GetToken(settings);
+            
             _httpClient = new HttpClient();
-            _httpClient.DefaultRequestHeaders.Add("xi-api-key", _apiKey);
-        }
+            _httpClient.DefaultRequestHeaders.Add("xi-api-key", token);
 
-        public async Task<bool> TextToSpeechAsync(string voiceId, string text, string outputPath)
-        {
             try
             {
-                var url = $"{_apiUrl}text-to-speech/{voiceId}";
-                
+                var apiUrl = string.Concat(settings.Host, settings.Endpoint, settings.VoiceName);
                 var data = new
                 {
-                    text = text,
-                    model_id = "eleven_multilingual_v2", 
+                    text = promtData.Text,
+                    model_id = settings.Model,
                     voice_settings = new
                     {
                         stability = 0.5,
@@ -42,34 +40,31 @@ namespace SerenityAITranslator.Editor.Services.Tts.AiProviders
                 var jsonData = JsonConvert.SerializeObject(data);
                 var content = new StringContent(jsonData, Encoding.UTF8, "application/json");
                 
-                var response = await _httpClient.PostAsync(url, content);
+                var response = await _httpClient.PostAsync(apiUrl, content);
                 
                 if (response.IsSuccessStatusCode)
                 {
                     var audioBytes = await response.Content.ReadAsByteArrayAsync();
                     
-                    await File.WriteAllBytesAsync(outputPath, audioBytes);
-                    Console.WriteLine($"Аудио успешно сохранено в: {outputPath}");
-                    return true;
+                    await File.WriteAllBytesAsync($"{promtData.Path}_{Prefix}{Extension}", audioBytes);
+                    Console.WriteLine($"Audio saved as: {promtData.Path}_{Prefix}{Extension}");
+                    return new TtsResultData(Prefix, Extension);
                 }
                 else
                 {
                     var errorText = await response.Content.ReadAsStringAsync();
-                    Console.WriteLine($"Ошибка: {response.StatusCode}");
-                    Console.WriteLine($"Сообщение: {errorText}");
-                    return false;
+                    
+                    Console.WriteLine($"Error: {response.StatusCode}");
+                    Console.WriteLine($"Message: {errorText}");
+                    
+                    return new TtsResultData(Prefix, Extension).Failure();
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Исключение: {ex.Message}");
-                return false;
+                Console.WriteLine($"Exception: {ex.Message}");
+                return new TtsResultData(Prefix, Extension).Failure();
             }
-        }
-
-        public Task<TtsResultData> GetTranslate(TtsPromtData promtData, TtsProvidersConfigurationItem settings, string promt)
-        {
-            throw new NotImplementedException();
         }
     }
 }

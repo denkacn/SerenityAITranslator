@@ -50,7 +50,9 @@ namespace SerenityAITranslator.Editor.Context
             EditorUtility.SetDirty(TranslateProvidersConfigurations);
             EditorUtility.SetDirty(TtsPromtSettings);
             EditorUtility.SetDirty(TtsProvidersConfigurations);
+            
             if(VoicesCollection != null) EditorUtility.SetDirty(VoicesCollection);
+            
             AssetDatabase.SaveAssets();
         }
 

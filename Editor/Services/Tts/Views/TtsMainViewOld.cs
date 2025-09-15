@@ -40,12 +40,12 @@ namespace SerenityAITranslator.Editor.Services.Tts.Views
             var outputFilePath = "D://output.mp3";
 
             var service = new ElevenLabsTtsProvider();
-            var success = await service.TextToSpeechAsync(voiceId, textToSpeak, outputFilePath);
+            //var success = await service.TextToSpeechAsync(voiceId, textToSpeak, outputFilePath);
         }
 
         private async Task TestGetVoiceGemini()
         {
-            var apiKey = "AIzaSyBuoxBIyA1o06ErQFY_KN_GHYRG4P0KwRg";
+            /*var apiKey = "AIzaSyBuoxBIyA1o06ErQFY_KN_GHYRG4P0KwRg";
             var ttsClient = new GeminiTtsProvider();
             
             var pcmPath = await ttsClient.GenerateSpeechAndSaveAsync(
@@ -55,12 +55,12 @@ namespace SerenityAITranslator.Editor.Services.Tts.Views
             );
             
             var wavPath = "D://output.wav";
-            AudioConverter.ConvertPcmToWav(pcmPath, wavPath);
+            AudioConverter.ConvertAndSavePcmToWav(pcmPath, wavPath);
             
             Debug.Log($"WAV file saved: {wavPath}");
             
             File.Delete(pcmPath);
-            Debug.Log("Temporary PCM file deleted");
+            Debug.Log("Temporary PCM file deleted");*/
         }
         
         private readonly HttpClient _httpClient = new HttpClient();
