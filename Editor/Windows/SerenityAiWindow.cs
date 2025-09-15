@@ -46,7 +46,7 @@ namespace SerenityAITranslator.Editor.Windows
         {
             EditorGUIUtility.SetIconSize(new Vector2(16, 16));
             
-            GUILayout.Label("Serenity AI v0.15.1", EditorStyles.boldLabel);
+            GUILayout.Label("Serenity AI v0.88.2", EditorStyles.boldLabel);
             GUILayout.Space(10);
             
             //GUILayout.Label("Select Service:");
