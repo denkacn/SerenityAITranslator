@@ -35,6 +35,9 @@ namespace SerenityAITranslator.Editor.Services.Tts.Views
 
         private void Setup(ISourceAssetProvider sourceAssetProvider)
         {
+            _context.TranslateManager.SetSourceAssetProvider(sourceAssetProvider);
+            _context.TranslateManager.Setup();
+            
             _ttsSettingsButtonView = new TtsSettingsButtonView(_owner, sourceAssetProvider, _context);
             _termsView = new TtsTermsView(_owner, sourceAssetProvider, _context);
         }
