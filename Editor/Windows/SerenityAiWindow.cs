@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using SerenityAITranslator.Editor.Context;
 using SerenityAITranslator.Editor.Services.Common.Collections;
 using SerenityAITranslator.Editor.Services.Common.Enums;

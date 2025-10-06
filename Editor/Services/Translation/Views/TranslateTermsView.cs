@@ -1,6 +1,7 @@
 using SerenityAITranslator.Editor.Context;
 using SerenityAITranslator.Editor.Services.Common.Views;
 using SerenityAITranslator.Editor.Services.Translation.SourceAssetProvider;
+using SerenityAITranslator.Editor.Services.Translation.Windows;
 using SerenityAITranslator.Editor.Tools;
 using UnityEditor;
 using UnityEngine;
@@ -90,8 +91,11 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
                     if (GUILayout.Button(translateAllButtonContent, GUILayout.Width(30)))
                     {
                         //var result = UiTools.DisplayTranslateSelectedDialog();
-
-                        _context.TranslateManager.TranslateSelectedToAllLanguages(Repaint);
+                        //_context.TranslateManager.TranslateSelectedToAllLanguages(Repaint);
+                        
+                        var window = EditorWindow.GetWindow<TranslateToAllLanguagesWindow>("Translate To All Languages");
+                        window.Show();
+                        window.Init(row, _context);
                     }
                     
                     if (GUILayout.Button(row.IsShowTranslated? "Translated" : "Original", row.IsShowTranslated? UiStyles.ButtonStyleGreen : EditorStyles.miniButton, GUILayout.Width(120)))

@@ -134,14 +134,13 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
             TranslateSelectedAsync(onCompleted, _translateAllCancellationTokenSource.Token).ConfigureAwait(false);
         }
         
-        public void TranslateSelectedToAllLanguages(Action onCompleted)
+        public void TranslateToAllLanguages(TranslatedRowData translatedData, Action onCompleted)
         {
             if (_isTranslateAllStarted) return;
             
-            _isTranslateAllStarted = true;
             _translateAllCancellationTokenSource = new CancellationTokenSource();
             
-            TranslateSelectedToAllLanguagesAsync(onCompleted, _translateAllCancellationTokenSource.Token).ConfigureAwait(false);
+            TranslateOneAsyncToAllLanguages(translatedData, onCompleted, _translateAllCancellationTokenSource.Token).ConfigureAwait(false);
         }
 
         public void TranslateOne(TranslatedRowData translatedData, Action onCompleted)
@@ -248,7 +247,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
             _isTranslateAllStarted = false;
         }
         
-        private async Task TranslateSelectedToAllLanguagesAsync(Action onCompleted, CancellationToken cancellationToken = default)
+        /*private async Task TranslateSelectedToAllLanguagesAsync(Action onCompleted, CancellationToken cancellationToken = default)
         {
             var translationSessionData = _context.SessionData.TranslationSessionData;
             var translationsData = translationSessionData.TranslationsData;
@@ -261,7 +260,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
                 
                 await TranslateOneAsyncToAllLanguages(translationData, onCompleted, cancellationToken);
             }
-        }
+        }*/
 
         #endregion
 
@@ -302,7 +301,6 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
                 return;
             }
             
-
             var terms = translationSessionData.SourceAssetProvider.GetTerms();
             var term = terms.Find(t => t.Term == translatedData.Term);
             
@@ -312,6 +310,39 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
             translatedData.OriginalText = translatedData.TranslatedText[destinationLanguageIndex];
             
             translationSessionData.SourceAssetProvider.ApplyChanges(translationSessionData.DestinationLanguage, onCompleted);
+        }
+
+        public void ApplyChangeToAllLanguages(TranslatedRowData translatedData, Action<bool> onCompleted)
+        {
+            var translationSessionData = _context.SessionData.TranslationSessionData;
+            
+            foreach (var destinationLanguage in translationSessionData.AvailableLanguages)
+            {
+                if (destinationLanguage == translationSessionData.SourceLanguage) continue;
+                
+                var destinationLanguageIndex = translationSessionData.AvailableLanguages.IndexOf(destinationLanguage);
+                
+                if (string.IsNullOrEmpty(translatedData.TranslatedText[destinationLanguageIndex]))
+                {
+                    onCompleted?.Invoke(false);
+                    return;
+                }
+                
+                var terms = translationSessionData.SourceAssetProvider.GetTerms();
+                var term = terms.Find(t => t.Term == translatedData.Term);
+                
+                if (term == null) continue;
+                
+                if (term.Languages[destinationLanguageIndex] != translatedData.TranslatedText[destinationLanguageIndex])
+                {
+                    term.Languages[destinationLanguageIndex] = translatedData.TranslatedText[destinationLanguageIndex];
+                    term.IsUpdated = true;
+                }   
+                
+                translationSessionData.SourceAssetProvider.ApplyChanges(destinationLanguage, onCompleted);
+            }
+            
+            SaveSession();
         }
         
         public void RewertChange(TranslatedRowData translatedData)
