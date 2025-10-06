@@ -76,13 +76,6 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
 
                             if (result) _context.TranslateManager.TranslateAll(Repaint);
                         }
-                        
-                        if (GUILayout.Button("Translate Selected"))
-                        {
-                            var result = UiTools.DisplayTranslateSelectedDialog();
-
-                            if (result) _context.TranslateManager.TranslateSelected(Repaint);
-                        }
                     }
                     
                     GUILayout.Space(10);
@@ -161,6 +154,18 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
             if (GUILayout.Button("Deselect All"))
             {
                 _context.TranslateManager.DeselectAllTerms();
+            }
+            
+            GUILayout.Space(20);
+
+            if (!_context.TranslateManager.IsTranslateAllStarted)
+            {
+                if (GUILayout.Button("Translate Selected"))
+                {
+                    var result = UiTools.DisplayTranslateSelectedDialog();
+
+                    if (result) _context.TranslateManager.TranslateSelected(Repaint);
+                }
             }
             
             GUILayout.FlexibleSpace();

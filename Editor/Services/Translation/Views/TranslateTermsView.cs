@@ -47,8 +47,8 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
             {
                 var rowStyle = (i % 2 == 0) ? UiStyles.EvenRowStyle : UiStyles.OddRowStyle;
                 var row = rows[i];
-                
-                var translatedText = row.IsShowTranslated ? row.TranslatedText : row.OriginalText;
+                var destinationLanguageIndex = translationSessionData.AvailableLanguages.IndexOf(translationSessionData.DestinationLanguage);
+                var translatedText = row.IsShowTranslated ? row.TranslatedText[destinationLanguageIndex] : row.OriginalText;
 
                 EditorGUILayout.BeginHorizontal(rowStyle);
                 
@@ -63,7 +63,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
                 {
                     if (_editRowId == row.Id)
                     {
-                        row.TranslatedText = EditorGUILayout.TextArea(row.TranslatedText, GUILayout.Width(415));
+                        row.TranslatedText[destinationLanguageIndex] = EditorGUILayout.TextArea(row.TranslatedText[destinationLanguageIndex], GUILayout.Width(415));
                         //GUI.FocusControl(null);
                         //Repaint();
                     }
@@ -79,10 +79,19 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
                 
                 if (_context.TranslateManager.IsTranslateProviderAndTranslateSettingSetup)
                 {
-                    if (GUILayout.Button("Translate", GUILayout.Width(80)))
+                    var translateButtonContent = new GUIContent("T", "Translate");
+                    if (GUILayout.Button(translateButtonContent, GUILayout.Width(30)))
                     {
                         _context.TranslateManager.TranslateOne(row, Repaint);
                         GUI.FocusControl(null);
+                    }
+                    
+                    var translateAllButtonContent = new GUIContent("TA", "Translate To All Languages");
+                    if (GUILayout.Button(translateAllButtonContent, GUILayout.Width(30)))
+                    {
+                        //var result = UiTools.DisplayTranslateSelectedDialog();
+
+                        _context.TranslateManager.TranslateSelectedToAllLanguages(Repaint);
                     }
                     
                     if (GUILayout.Button(row.IsShowTranslated? "Translated" : "Original", row.IsShowTranslated? UiStyles.ButtonStyleGreen : EditorStyles.miniButton, GUILayout.Width(120)))
@@ -108,9 +117,9 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
                     }
                 }
 
-                if (!string.IsNullOrEmpty(row.TranslatedText))
+                if (!string.IsNullOrEmpty(row.TranslatedText[destinationLanguageIndex]))
                 {
-                    if (row.IsShowTranslated && row.TranslatedText != row.OriginalText)
+                    if (row.IsShowTranslated && row.TranslatedText[destinationLanguageIndex] != row.OriginalText)
                     {
                         var addButtonContent = new GUIContent("A", "Apply Change");
                         if (GUILayout.Button(addButtonContent, GUILayout.Width(20)))
@@ -131,7 +140,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
                     }
                     
                     EditorGUILayout.LabelField("●",
-                        row.TranslatedText != row.OriginalText
+                        row.TranslatedText[destinationLanguageIndex] != row.OriginalText
                             ? UiStyles.LabelRowStyleGreen
                             : UiStyles.LabelRowStyleYellow, GUILayout.Width(15));
                 }

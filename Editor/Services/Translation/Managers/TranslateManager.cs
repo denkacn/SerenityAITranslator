@@ -81,7 +81,8 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
                 
                 translationsData.Add(new TranslatedRowData(index, term.Term,
                     term.Languages[translationSessionData.AvailableLanguages.IndexOf(translationSessionData.SourceLanguage)],
-                    term.Languages[translationSessionData.AvailableLanguages.IndexOf(translationSessionData.DestinationLanguage)]));
+                    term.Languages[translationSessionData.AvailableLanguages.IndexOf(translationSessionData.DestinationLanguage)],
+                    translationSessionData.AvailableLanguages.Count));
 
                 index++;
             }
@@ -106,7 +107,8 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
 
                 translationsData.Add(new TranslatedRowData(index, term.Term,
                     term.Languages[translationSessionData.AvailableLanguages.IndexOf(translationSessionData.SourceLanguage)],
-                    term.Languages[translationSessionData.AvailableLanguages.IndexOf(translationSessionData.DestinationLanguage)]));
+                    term.Languages[translationSessionData.AvailableLanguages.IndexOf(translationSessionData.DestinationLanguage)],
+                    translationSessionData.AvailableLanguages.Count));
 
                 index++;
             }
@@ -125,10 +127,21 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
         public void TranslateSelected(Action onCompleted)
         {
             if (_isTranslateAllStarted) return;
+            
             _isTranslateAllStarted = true;
             _translateAllCancellationTokenSource = new CancellationTokenSource();
             
             TranslateSelectedAsync(onCompleted, _translateAllCancellationTokenSource.Token).ConfigureAwait(false);
+        }
+        
+        public void TranslateSelectedToAllLanguages(Action onCompleted)
+        {
+            if (_isTranslateAllStarted) return;
+            
+            _isTranslateAllStarted = true;
+            _translateAllCancellationTokenSource = new CancellationTokenSource();
+            
+            TranslateSelectedToAllLanguagesAsync(onCompleted, _translateAllCancellationTokenSource.Token).ConfigureAwait(false);
         }
 
         public void TranslateOne(TranslatedRowData translatedData, Action onCompleted)
@@ -168,10 +181,39 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
 
             if (!cancellationToken.IsCancellationRequested && result.IsNoError)
             {
-                translatedData.TranslatedText = result.Translation;
+                translatedData.TranslatedText[translationSessionData.AvailableLanguages.IndexOf(translationSessionData.DestinationLanguage)] = result.Translation;
                 translatedData.IsShowTranslated = true;
                 onCompleted?.Invoke();
             }
+        }
+        
+        private async Task TranslateOneAsyncToAllLanguages(TranslatedRowData translatedData, 
+            Action onCompleted,
+            CancellationToken cancellationToken = default)
+        {
+            var translationSessionData = _context.SessionData.TranslationSessionData;
+
+            foreach (var destinationLanguage in translationSessionData.AvailableLanguages)
+            {
+                if (destinationLanguage == translationSessionData.SourceLanguage) continue;
+                
+                var promtData = new TranslatedPromtData(
+                    translatedData.Term, 
+                    destinationLanguage,
+                    translatedData.SourceText,
+                    string.IsNullOrEmpty(translationSessionData.SelectedPromt) ? DefaultPromt : translationSessionData.SelectedPromt);
+                
+                var result = await translationSessionData.TranslateProvider
+                    .GetTranslate(promtData, translationSessionData.TranslateSettings, translationSessionData.PromtFactory);
+                
+                if (!cancellationToken.IsCancellationRequested && result.IsNoError)
+                {
+                    translatedData.TranslatedText[translationSessionData.AvailableLanguages.IndexOf(destinationLanguage)] = result.Translation;
+                }
+            }
+            
+            translatedData.IsShowTranslated = true;
+            onCompleted?.Invoke();
         }
         
         private async Task TranslateAllAsync(Action onCompleted, CancellationToken cancellationToken = default)
@@ -205,6 +247,21 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
             
             _isTranslateAllStarted = false;
         }
+        
+        private async Task TranslateSelectedToAllLanguagesAsync(Action onCompleted, CancellationToken cancellationToken = default)
+        {
+            var translationSessionData = _context.SessionData.TranslationSessionData;
+            var translationsData = translationSessionData.TranslationsData;
+            
+            foreach (var translationData in translationsData)
+            {
+                if (!translationData.IsSelected) continue;
+                
+                cancellationToken.ThrowIfCancellationRequested();
+                
+                await TranslateOneAsyncToAllLanguages(translationData, onCompleted, cancellationToken);
+            }
+        }
 
         #endregion
 
@@ -220,13 +277,13 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
             
             foreach (var translationData in translationsData)
             {
-                if (string.IsNullOrEmpty(translationData.TranslatedText)) continue;
+                if (string.IsNullOrEmpty(translationData.TranslatedText[destinationLanguageIndex])) continue;
                 var term = terms.Find(t => t.Term == translationData.Term);
                 if (term == null) continue;
                 
-                if (term.Languages[destinationLanguageIndex] != translationData.TranslatedText)
+                if (term.Languages[destinationLanguageIndex] != translationData.TranslatedText[destinationLanguageIndex])
                 {
-                    term.Languages[destinationLanguageIndex] = translationData.TranslatedText;
+                    term.Languages[destinationLanguageIndex] = translationData.TranslatedText[destinationLanguageIndex];
                     term.IsUpdated = true;
                 }
             }
@@ -236,28 +293,32 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
 
         public void ApplyChange(TranslatedRowData translatedData, Action<bool> onCompleted)
         {
-            if (string.IsNullOrEmpty(translatedData.TranslatedText))
+            var translationSessionData = _context.SessionData.TranslationSessionData;
+            var destinationLanguageIndex = translationSessionData.AvailableLanguages.IndexOf(translationSessionData.DestinationLanguage);
+            
+            if (string.IsNullOrEmpty(translatedData.TranslatedText[destinationLanguageIndex]))
             {
                 onCompleted?.Invoke(false);
                 return;
             }
             
-            var translationSessionData = _context.SessionData.TranslationSessionData;
+
             var terms = translationSessionData.SourceAssetProvider.GetTerms();
             var term = terms.Find(t => t.Term == translatedData.Term);
-            var destinationLanguageIndex = translationSessionData.AvailableLanguages.IndexOf(translationSessionData.DestinationLanguage);
             
-            term.Languages[destinationLanguageIndex] = translatedData.TranslatedText;
+            term.Languages[destinationLanguageIndex] = translatedData.TranslatedText[destinationLanguageIndex];
             term.IsUpdated = true;
             
-            translatedData.OriginalText = translatedData.TranslatedText;
+            translatedData.OriginalText = translatedData.TranslatedText[destinationLanguageIndex];
             
             translationSessionData.SourceAssetProvider.ApplyChanges(translationSessionData.DestinationLanguage, onCompleted);
         }
         
         public void RewertChange(TranslatedRowData translatedData)
         {
-            translatedData.TranslatedText = translatedData.OriginalText;
+            var translationSessionData = _context.SessionData.TranslationSessionData;
+            var destinationLanguageIndex = translationSessionData.AvailableLanguages.IndexOf(translationSessionData.DestinationLanguage);
+            translatedData.TranslatedText[destinationLanguageIndex] = translatedData.OriginalText;
         }
         
         #endregion
@@ -351,5 +412,6 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
             }
             SaveSession();  
         }
+        
     }
 }
