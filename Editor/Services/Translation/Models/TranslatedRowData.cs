@@ -11,6 +11,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.Models
         public string OriginalText;
         public string TranslatedText;
         public bool IsShowTranslated;
+        public bool IsSelected;
         
         public TranslatedRowData(int id, string term, string sourceText, string originalText)
         {

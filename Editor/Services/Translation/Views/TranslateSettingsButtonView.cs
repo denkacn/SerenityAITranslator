@@ -56,6 +56,8 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
                 {
                     _context.TranslateManager.GetTranslationTerms();
                 }
+                
+                GUILayout.Space(10);
 
                 if (_context.TranslateManager.IsTranslateProviderAndTranslateSettingSetup)
                 {
@@ -74,7 +76,16 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
 
                             if (result) _context.TranslateManager.TranslateAll(Repaint);
                         }
+                        
+                        if (GUILayout.Button("Translate Selected"))
+                        {
+                            var result = UiTools.DisplayTranslateSelectedDialog();
+
+                            if (result) _context.TranslateManager.TranslateSelected(Repaint);
+                        }
                     }
+                    
+                    GUILayout.Space(10);
                     
                     if (GUILayout.Button("Apply Changes"))
                     {
@@ -131,6 +142,25 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
                 {
                     _context.TranslateManager.GetTranslationTermsByGroup(group);
                 }
+            }
+            
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
+            
+            GUILayout.Space(10);
+            
+            GUILayout.BeginHorizontal();
+            
+            if (GUILayout.Button("Select All"))
+            {
+                _context.TranslateManager.SelectAllTerms();
+            }
+            
+            GUILayout.Space(10);
+            
+            if (GUILayout.Button("Deselect All"))
+            {
+                _context.TranslateManager.DeselectAllTerms();
             }
             
             GUILayout.FlexibleSpace();

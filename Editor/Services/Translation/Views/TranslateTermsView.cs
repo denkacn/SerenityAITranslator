@@ -34,7 +34,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
             EditorGUI.indentLevel++;
 
             EditorGUILayout.BeginHorizontal(UiStyles.DarkRowStyle);
-            //EditorGUILayout.LabelField("Id", UiStyles.LabelHeaderStyle, GUILayout.Width(40));
+            EditorGUILayout.LabelField("", UiStyles.LabelHeaderStyle, GUILayout.Width(30));
             EditorGUILayout.LabelField("Terms", UiStyles.LabelHeaderStyle, GUILayout.Width(215));
             EditorGUILayout.LabelField("Base Text", UiStyles.LabelHeaderStyle, GUILayout.Width(415));
             EditorGUILayout.LabelField("Translation", UiStyles.LabelHeaderStyle, GUILayout.Width(400));
@@ -53,6 +53,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
                 EditorGUILayout.BeginHorizontal(rowStyle);
                 
                 //EditorGUILayout.LabelField(row.Id.ToString(), GUILayout.Width(40));
+                row.IsSelected = EditorGUILayout.Toggle(row.IsSelected, GUILayout.Width(30));
                 EditorGUILayout.LabelField(row.Term, UiStyles.LabelRowStyle,GUILayout.Width(200));
                 EditorGUILayout.LabelField(row.SourceText, UiStyles.LabelRowStyle, GUILayout.Width(400), GUILayout.MinHeight(30), GUILayout.MaxHeight(800));
 

@@ -64,6 +64,11 @@ namespace SerenityAITranslator.Editor.Tools
         {
             return DisplayDialog("Do you really want to translate all the terms?");
         }
+        
+        public static bool DisplayTranslateSelectedDialog()
+        {
+            return DisplayDialog("Do you really want to translate selected terms?");
+        }
 
         public static bool DisplayDeleteVoiceDialog()
         {
@@ -104,7 +109,6 @@ namespace SerenityAITranslator.Editor.Tools
                 "No"
             );
         }
-
         
     }
 }

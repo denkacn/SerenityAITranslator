@@ -121,6 +121,15 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
             
             TranslateAllAsync(onCompleted, _translateAllCancellationTokenSource.Token).ConfigureAwait(false);
         }
+        
+        public void TranslateSelected(Action onCompleted)
+        {
+            if (_isTranslateAllStarted) return;
+            _isTranslateAllStarted = true;
+            _translateAllCancellationTokenSource = new CancellationTokenSource();
+            
+            TranslateSelectedAsync(onCompleted, _translateAllCancellationTokenSource.Token).ConfigureAwait(false);
+        }
 
         public void TranslateOne(TranslatedRowData translatedData, Action onCompleted)
         {
@@ -172,6 +181,23 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
 
             foreach (var translationData in translationsData)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+                
+                await TranslateOneAsync(translationData, onCompleted, cancellationToken);
+            }
+            
+            _isTranslateAllStarted = false;
+        }
+        
+        private async Task TranslateSelectedAsync(Action onCompleted, CancellationToken cancellationToken = default)
+        {
+            var translationSessionData = _context.SessionData.TranslationSessionData;
+            var translationsData = translationSessionData.TranslationsData;
+
+            foreach (var translationData in translationsData)
+            {
+                if (!translationData.IsSelected) continue;
+                
                 cancellationToken.ThrowIfCancellationRequested();
                 
                 await TranslateOneAsync(translationData, onCompleted, cancellationToken);
@@ -304,6 +330,26 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
         private void SaveSession()
         {
             _context.Save();
+        }
+
+        public void SelectAllTerms()
+        {
+            var translationsData = _context.SessionData.TranslationSessionData.TranslationsData;
+            foreach (var translationData in translationsData)
+            {
+                translationData.IsSelected = true;
+            }
+            SaveSession();
+        }
+        
+        public void DeselectAllTerms()
+        {
+            var translationsData = _context.SessionData.TranslationSessionData.TranslationsData;
+            foreach (var translationData in translationsData)
+            {
+                translationData.IsSelected = false;
+            }
+            SaveSession();  
         }
     }
 }
