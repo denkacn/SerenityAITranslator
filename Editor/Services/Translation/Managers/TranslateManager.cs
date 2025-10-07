@@ -384,6 +384,9 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
                 case TextProviderType.GoogleAi:
                     translationSessionData.TranslateProvider = new GoogleAiTranslateProvider();
                     break;
+                case TextProviderType.GoogleTranslate:
+                    translationSessionData.TranslateProvider = new GoogleTranslateProvider();
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }

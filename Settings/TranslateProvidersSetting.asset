@@ -25,3 +25,6 @@ MonoBehaviour:
   - Host: https://api.x.ai
     Endpoint: /v1/chat/completions
     ProviderType: 6
+  - Host: https://translation.googleapis.com
+    Endpoint: /language/translate/v2
+    ProviderType: 7
