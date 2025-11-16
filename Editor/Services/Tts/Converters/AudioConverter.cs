@@ -1,5 +1,6 @@
 using System.IO;
 using System.Text;
+using UnityEngine;
 
 namespace SerenityAITranslator.Editor.Services.Tts.Converters
 {
@@ -14,6 +15,8 @@ namespace SerenityAITranslator.Editor.Services.Tts.Converters
 
         public static void ConvertAndSavePcmToWav(byte[] pcmData, string wavPath, int sampleRate = 24000, int channels = 1, int bitsPerSample = 16)
         {
+            Debug.Log($"ConvertAndSavePcmToWav: {wavPath}, sampleRate: {sampleRate}, channels: {channels}, bitsPerSample: {bitsPerSample}");
+            
             using var stream = new FileStream(wavPath, FileMode.Create);
             using var writer = new BinaryWriter(stream);
             

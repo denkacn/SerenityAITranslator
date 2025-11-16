@@ -70,6 +70,9 @@ namespace SerenityAITranslator.Editor.Services.Tts.Managers
                 case TtsProviderType.Gemini:
                     ttsSessionData.TranslateProvider = new GeminiTtsProvider();
                     break;
+                case TtsProviderType.Resemble:
+                    ttsSessionData.TranslateProvider = new ResembleTtsProvider();
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
