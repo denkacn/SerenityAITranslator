@@ -1,0 +1,14 @@
+{
+  "name": "com.puzikgames.serenityai",
+  "displayName": "Serenity AI Translator",
+  "version": "0.0.7",
+  "unity": "2022.1",
+  "author": "Denis Puzik",
+  "description": "AI Extension for Localization text and voice",
+  "dependencies": {
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/denkacn/SerenityAITranslator.git"
+  }
+}
