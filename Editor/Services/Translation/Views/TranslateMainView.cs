@@ -33,17 +33,17 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
 
         public override void Draw()
         {
-            if (string.IsNullOrEmpty(_context.SessionData.TranslationSessionData.ProviderId))
-            {
-                EditorGUILayout.HelpBox("Create and select Translate Providers to continue editing.",
-                    MessageType.Info);
-                return;
-            }
-            
             _sourceAssetProviderView.Draw();
             
             GUILayout.Space(10);
             
+            if (string.IsNullOrEmpty(_context.SessionData.TranslationSessionData.ProviderId))
+            {
+                EditorGUILayout.HelpBox("Create and select an AI Translate Provider in Settings to continue editing translations.",
+                    MessageType.Info);
+                return;
+            }
+
             if(_context.TranslateManager == null) return;
             
             if (_context.TranslateManager != null && _context.TranslateManager.IsContextSetup)

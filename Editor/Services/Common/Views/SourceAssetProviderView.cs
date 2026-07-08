@@ -47,6 +47,11 @@ namespace SerenityAITranslator.Editor.Services.Common.Views
             
             GUILayout.BeginHorizontal(UiStyles.OddRowStyle);
             GUILayout.Label("Source Asset Provider", UiStyles.LabelStyleCenter);
+            if (GUILayout.Button("Reload", GUILayout.Width(60), GUILayout.Height(20)))
+            {
+                LoadProviders();
+            }
+            
             if (GUILayout.Button(_isShowAssetProviderMenu? "X" : "▼", GUILayout.Width(20), GUILayout.Height(20)))
             {
                 _isShowAssetProviderMenu = !_isShowAssetProviderMenu;
