@@ -1,104 +1,169 @@
 # Serenity AI Translator
 
-Editor package for translating Unity localization text with AI providers and generating voice clips with TTS providers.
+Serenity AI Translator is a Unity Editor tool for translating localization text with AI providers and generating voice clips with TTS providers.
+
+It is designed for projects that already use a localization system and want a faster workflow for:
+
+- translating terms into multiple languages;
+- reviewing and applying translated text;
+- generating voice clips from localization text;
+- keeping AI provider settings inside the Unity Editor.
 
 ## Installation
 
-Install the package through Unity Package Manager:
+Install the package from Unity Package Manager:
 
 1. Open `Window > Package Manager`.
-2. Press `+`.
+2. Click `+`.
 3. Select `Add package from git URL...`.
-4. Use:
+4. Paste:
 
 ```text
 https://github.com/denkacn/SerenityAITranslator.git
 ```
 
-In this development project the package repository is this folder:
+Unity will install the package and its required dependency:
+
+- `com.unity.nuget.newtonsoft-json`
+
+## Open The Tool
+
+After installation, open:
 
 ```text
-Assets/SerenityAITranslator
+Tools > Serenity AI Translator
 ```
 
-When installed through Unity Package Manager, Unity exposes the package under:
+The window has three main tabs:
 
-```text
-Packages/com.puzikgames.serenityai
-```
+- `Settings` - configure AI providers and prompts.
+- `Translate` - load localization terms and translate text.
+- `Voice` - generate and manage voice clips.
 
-## Dependencies
+## Choose A Localization Source
 
-### Required
+The main package does not force one localization system. Install the source provider extension that matches your project.
 
-The core package depends on:
+Included extensions:
 
-- `com.unity.nuget.newtonsoft-json` for provider payload serialization and local JSON data.
+- `I2SourceAssetProviderExtension.unitypackage` for I2 Localization.
+- `UnityLocalizationSourceAssetProviderExtension.unitypackage` for Unity Localization.
 
-This dependency is declared in `package.json`.
+To use one:
 
-### Bundled
+1. Find the extension package in the installed package folder.
+2. Import the `.unitypackage` into your project.
+3. Create the provider asset from Unity's `Create` menu:
+   - `SerenityAI > Providers > I2SourceAssetProvider`
+   - or `SerenityAI > Providers > UnityLocalizationSourceAssetProvider`
+4. Assign your localization asset/table settings on that provider asset.
+5. Open Serenity AI Translator and select the provider in the `Source Asset Provider` section.
+6. Click `Setup`.
 
-The package includes:
+If no source provider appears, click `Reload` in the `Source Asset Provider` header after creating the provider asset.
 
-- `Plugins/CSCore.dll`
+## Configure Translation
 
-The DLL is imported for Editor only. Keep it inside the package unless audio conversion/playback code is replaced with a Unity-only implementation.
+Open the `Settings` tab and add a translate provider.
 
-### Optional source providers
+Supported text providers:
 
-The core package works through the `ISourceAssetProvider` contract. Concrete integrations are distributed separately as extension packages:
+- LM Studio
+- Ollama
+- OpenAI
+- DeepSeek
+- Google AI
+- Grok
+- Google Translate
 
-- `Extension/I2SourceAssetProviderExtension.unitypackage`
-- `Extension/UnityLocalizationSourceAssetProviderExtension.unitypackage`
+For most providers you need:
 
-Import only the extension that matches the localization system in the target project.
+- provider type;
+- host and endpoint;
+- API token or token file;
+- model name.
 
-## Settings Layout
+After saving a provider, click `Select` next to it. The selected provider button changes to `Selected`.
 
-Package defaults live inside the package:
+## Configure Prompts
 
-```text
-Settings
-```
+In the `Settings` tab, add or select prompts for translation and TTS.
 
-At runtime in the Unity Editor this resolves to either `Assets/SerenityAITranslator/Settings` in the development host project or `Packages/com.puzikgames.serenityai/Settings` after UPM installation.
+Translation prompts can use placeholders expected by the package, such as target language and source language. The default prompt is created automatically when needed, so you can start without editing prompts.
 
-Project/user settings are created outside the package:
+## Translate Text
 
-```text
-Assets/SerenityAIData/Editor/SerenityAi
-Assets/SerenityAIData/VoicesLibrary
-```
+1. Open the `Translate` tab.
+2. Select your source asset provider.
+3. Choose source and destination languages.
+4. Load terms from the selected localization source.
+5. Use one of the translation actions:
+   - translate one row;
+   - translate selected rows;
+   - translate all rows;
+   - translate one row to all languages.
+6. Review generated translations.
+7. Apply changes back to the localization source.
 
-On first launch, existing legacy settings from `Assets/Editor/SerenityAi` are copied into the new project settings folder.
+The table lets you switch between original and translated text, edit generated text, and apply or revert changes.
 
-Provider configuration assets can contain tokens. Keep them local, store secrets in token files, or exclude project data from version control.
+## Configure Text To Speech
 
-## Architecture Notes
+Open the `Settings` tab and add a TTS provider.
 
-- AI and HTTP calls go through `AiRequestService` in `Editor/Services/Common/Ai`.
-- Translation and TTS providers are created by provider factories.
-- Long-running translation/TTS operations expose status through `SerenityJob`.
-- UI views should call manager methods and render job state, but avoid owning provider or HTTP logic.
+Supported TTS providers:
 
-## Package Boundary
+- Coqui
+- ElevenLabs
+- Gemini
+- Resemble
 
-Only files inside this package repository are intended to be distributed through git. In the development host project that means `Assets/SerenityAITranslator`.
+For most providers you need:
 
-Do not commit generated Unity host-project folders such as:
+- provider type;
+- host and endpoint;
+- API token or token file;
+- model name;
+- voice name.
 
-- `Library`
-- `Temp`
-- `Obj`
-- `Logs`
-- `UserSettings`
-- `Assets/SerenityAIData`
+After saving a provider, click `Select` next to it.
 
-## Provider Development
+## Generate Voice Clips
 
-New translation providers should implement the existing translation provider contract and be registered in `TranslateProviderFactory`.
+1. Open the `Voice` tab.
+2. Select the same source asset provider used for translation.
+3. Select a TTS provider in `Settings`.
+4. Choose the terms you want to generate.
+5. Generate voice clips.
+6. Use `Info`, `Play`, `Text to Speech`, `Edit`, and `Delete` controls to manage generated clips.
 
-New TTS providers should implement the existing TTS provider contract and be registered in `TtsProviderFactory`.
+Generated voice library data is stored in your Unity project outside the package.
 
-Provider HTTP requests should use `AiRequestService` instead of creating local `HttpClient` or `UnityWebRequest` calls.
+## API Tokens
+
+Provider settings can contain API tokens.
+
+Recommended options:
+
+- use token files instead of pasting tokens directly;
+- keep local settings out of source control;
+- do not commit generated project data that contains secrets.
+
+## Project Data
+
+Serenity AI Translator creates project-specific data in your Unity project, outside the installed package.
+
+This includes:
+
+- provider settings;
+- prompt settings;
+- session state;
+- generated voice library data.
+
+These files belong to your project and can be handled according to your team's source-control policy.
+
+## Notes
+
+- The package is Editor-only.
+- Source provider extensions are optional, but at least one is required to load localization terms.
+- If Unity keeps an older package version after updating from git, remove the old package cache or force Package Manager to update the git revision.
