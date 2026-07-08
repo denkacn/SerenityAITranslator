@@ -23,6 +23,21 @@ namespace SerenityAITranslator.Editor.Services.Common.Views
             _owner.Repaint();
         }
         
+        protected static bool DrawCenteredButton(GUIContent content, float width, float rowHeight, GUIStyle style = null, float buttonHeight = 20)
+        {
+            var cellRect = GUILayoutUtility.GetRect(width, rowHeight, GUILayout.Width(width), GUILayout.Height(rowHeight));
+            var buttonRect = new Rect(cellRect.x, cellRect.y + (rowHeight - buttonHeight) * 0.5f, width, buttonHeight);
+            
+            return style == null
+                ? GUI.Button(buttonRect, content)
+                : GUI.Button(buttonRect, content, style);
+        }
+        
+        protected static bool DrawCenteredButton(string text, float width, float rowHeight, GUIStyle style = null, float buttonHeight = 20)
+        {
+            return DrawCenteredButton(new GUIContent(text), width, rowHeight, style, buttonHeight);
+        }
+        
         protected void DrawJobStatus(SerenityJob job)
         {
             if (job == null || job.Status == SerenityJobStatus.Idle) return;

@@ -68,14 +68,14 @@ namespace SerenityAITranslator.Editor.Services.Tts.Views
                     var language = _context.SessionData.TranslationSessionData.SourceLanguage;
                     if (_context.VoicesCollection.IsExist(row.Term, language))
                     {
-                        if (GUILayout.Button("Info", UiStyles.ButtonStyleYellowText, GUILayout.Width(80)))
+                        if (DrawCenteredButton("Info", 80, rowHeight, UiStyles.ButtonStyleYellowText))
                         {
                             _context.TtsManager.SetForInfo(row);
                         }
                     }
                     else
                     {
-                        if (GUILayout.Button("To Voice", GUILayout.Width(80)))
+                        if (DrawCenteredButton("To Voice", 80, rowHeight))
                         {
                             _context.TtsManager.TranslateOne(row, Repaint);
                             GUI.FocusControl(null);
@@ -84,18 +84,18 @@ namespace SerenityAITranslator.Editor.Services.Tts.Views
                     
                     EditorGUIUtility.SetIconSize(new Vector2(10, 10));
 
-                    if (GUILayout.Button(new GUIContent(AssetsUtility.LoadIcon("icon-play.png"), "Play Clip"), GUILayout.Width(20), GUILayout.Height(20)))
+                    if (DrawCenteredButton(new GUIContent(AssetsUtility.LoadIcon("icon-play.png"), "Play Clip"), 20, rowHeight))
                     {
                         _context.TtsManager.SetForInfo(row);
                         _context.TtsManager.Play(row);
                     }
                     
-                    if (GUILayout.Button(new GUIContent(AssetsUtility.LoadIcon("icon-switch.png"), "Text to Speech"), GUILayout.Width(20), GUILayout.Height(20)))
+                    if (DrawCenteredButton(new GUIContent(AssetsUtility.LoadIcon("icon-switch.png"), "Text to Speech"), 20, rowHeight))
                     {
                         _context.TtsManager.TranslateOne(row, Repaint);
                     }
                     
-                    if (GUILayout.Button(new GUIContent(AssetsUtility.LoadIcon("icon-edit.png"), "Edit text"), GUILayout.Width(20), GUILayout.Height(20)))
+                    if (DrawCenteredButton(new GUIContent(AssetsUtility.LoadIcon("icon-edit.png"), "Edit text"), 20, rowHeight))
                     {
                         if (_editRowId != row.Id)
                         {
@@ -108,7 +108,7 @@ namespace SerenityAITranslator.Editor.Services.Tts.Views
                         }
                     }
                     
-                    if (GUILayout.Button(new GUIContent(AssetsUtility.LoadIcon("icon-delete.png"), "Delete"), GUILayout.Width(20), GUILayout.Height(20)))
+                    if (DrawCenteredButton(new GUIContent(AssetsUtility.LoadIcon("icon-delete.png"), "Delete"), 20, rowHeight))
                     {
                         var result = UiTools.DisplayDeleteVoiceDialog();
 

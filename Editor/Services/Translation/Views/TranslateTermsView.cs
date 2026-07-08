@@ -58,7 +58,9 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
                 var translationHeight = UiStyles.TableCellStyle.CalcHeight(new GUIContent(translatedText), 400);
                 var rowHeight = Mathf.Clamp(Mathf.Max(30, sourceHeight, translationHeight), 30, 800);
                 
-                row.IsSelected = EditorGUILayout.Toggle(row.IsSelected, GUILayout.Width(30));
+                var selectRect = GUILayoutUtility.GetRect(30, rowHeight, GUILayout.Width(30), GUILayout.Height(rowHeight));
+                var toggleRect = new Rect(selectRect.x + 7, selectRect.y + (rowHeight - 16) * 0.5f, 16, 16);
+                row.IsSelected = EditorGUI.Toggle(toggleRect, row.IsSelected);
                 EditorGUILayout.LabelField(row.Term, UiStyles.TableCellStyle, GUILayout.Width(200), GUILayout.Height(rowHeight));
                 EditorGUILayout.LabelField(row.SourceText, UiStyles.TableCellStyle, GUILayout.Width(400), GUILayout.Height(rowHeight));
                 
@@ -83,14 +85,14 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
                 if (_context.TranslateManager.IsTranslateProviderAndTranslateSettingSetup)
                 {
                     var translateButtonContent = new GUIContent("T", "Translate");
-                    if (GUILayout.Button(translateButtonContent, GUILayout.Width(30)))
+                    if (DrawCenteredButton(translateButtonContent, 30, rowHeight))
                     {
                         _context.TranslateManager.TranslateOne(row, Repaint);
                         GUI.FocusControl(null);
                     }
                     
                     var translateAllButtonContent = new GUIContent("TA", "Translate To All Languages");
-                    if (GUILayout.Button(translateAllButtonContent, GUILayout.Width(30)))
+                    if (DrawCenteredButton(translateAllButtonContent, 30, rowHeight))
                     {
                         //var result = UiTools.DisplayTranslateSelectedDialog();
                         //_context.TranslateManager.TranslateSelectedToAllLanguages(Repaint);
@@ -100,7 +102,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
                         window.Init(row, _context);
                     }
                     
-                    if (GUILayout.Button(row.IsShowTranslated? "Translated" : "Original", row.IsShowTranslated? UiStyles.ButtonStyleGreen : EditorStyles.miniButton, GUILayout.Width(120)))
+                    if (DrawCenteredButton(row.IsShowTranslated? "Translated" : "Original", 120, rowHeight, row.IsShowTranslated? UiStyles.ButtonStyleGreen : EditorStyles.miniButton))
                     {
                         row.IsShowTranslated = !row.IsShowTranslated;
                     }
@@ -108,7 +110,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
                     if (row.IsShowTranslated)
                     {
                         var editButtonContent = new GUIContent("E", "Edit");
-                        if (GUILayout.Button(editButtonContent, GUILayout.Width(20)))
+                        if (DrawCenteredButton(editButtonContent, 20, rowHeight))
                         {
                             if (_editRowId != row.Id)
                             {
@@ -128,7 +130,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
                     if (row.IsShowTranslated && row.TranslatedText[destinationLanguageIndex] != row.OriginalText)
                     {
                         var addButtonContent = new GUIContent("A", "Apply Change");
-                        if (GUILayout.Button(addButtonContent, GUILayout.Width(20)))
+                        if (DrawCenteredButton(addButtonContent, 20, rowHeight))
                         {
                             _context.TranslateManager.ApplyChange(row, isOk =>
                             {
@@ -138,7 +140,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
                         }
                         
                         var rewertButtonContent = new GUIContent("R", "Rewert Change");
-                        if (GUILayout.Button(rewertButtonContent, GUILayout.Width(20)))
+                        if (DrawCenteredButton(rewertButtonContent, 20, rowHeight))
                         {
                             GUI.FocusControl(null);
                             _context.TranslateManager.RewertChange(row);
