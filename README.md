@@ -12,7 +12,7 @@ Install the package through Unity Package Manager:
 4. Use:
 
 ```text
-https://github.com/denkacn/SerenityAITranslator.git#develop
+https://github.com/denkacn/SerenityAITranslator.git
 ```
 
 In this development project the package repository is this folder:
