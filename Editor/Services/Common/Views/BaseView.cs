@@ -38,6 +38,27 @@ namespace SerenityAITranslator.Editor.Services.Common.Views
             return DrawCenteredButton(new GUIContent(text), width, rowHeight, style, buttonHeight);
         }
         
+        protected static bool DrawSelectionButton(bool isSelected, params GUILayoutOption[] options)
+        {
+            if (!isSelected)
+            {
+                return GUILayout.Button("Select", EditorStyles.miniButton, options);
+            }
+            
+            var previousBackgroundColor = GUI.backgroundColor;
+            var previousContentColor = GUI.contentColor;
+            
+            GUI.backgroundColor = new Color(0.35f, 0.75f, 0.32f);
+            GUI.contentColor = Color.white;
+            
+            var clicked = GUILayout.Button("Selected", EditorStyles.miniButton, options);
+            
+            GUI.backgroundColor = previousBackgroundColor;
+            GUI.contentColor = previousContentColor;
+            
+            return clicked;
+        }
+        
         protected void DrawJobStatus(SerenityJob job)
         {
             if (job == null || job.Status == SerenityJobStatus.Idle) return;

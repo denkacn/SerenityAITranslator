@@ -150,7 +150,7 @@ namespace SerenityAITranslator.Editor.Services.Settings.Views
                 
                 var isSelected = _context.TranslateManager.SelectedTranslateProviderId == provider.Id;
 
-                if (GUILayout.Button("Select", isSelected? UiStyles.ButtonStyleGreen : EditorStyles.miniButton, GUILayout.Width(100)))
+                if (DrawSelectionButton(isSelected, GUILayout.Width(100)))
                 {
                     _context.TranslateManager.SelectTranslateProviderSettings(provider);
                 }

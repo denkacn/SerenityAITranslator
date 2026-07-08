@@ -89,7 +89,7 @@ namespace SerenityAITranslator.Editor.Services.Settings.Views
 
                 var isSelected = _context.SessionData.TtsSessionData.SelectedPromt == promtData.Promt;
                 
-                if (GUILayout.Button("Select", isSelected? UiStyles.ButtonStyleGreen : EditorStyles.miniButton, GUILayout.Width(100)))
+                if (DrawSelectionButton(isSelected, GUILayout.Width(100)))
                 {
                     _context.TtsManager.SelectPromt(promtData);
                 }
