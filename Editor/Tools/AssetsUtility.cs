@@ -31,6 +31,28 @@ namespace SerenityAITranslator.Editor.Tools
             return asset;
         }
         
+        public static T LoadOrCreate<T>(string assetPath, string legacyAssetPath) where T : ScriptableObject
+        {
+            var asset = AssetDatabase.LoadAssetAtPath<T>(assetPath);
+            if (asset != null) return asset;
+
+            if (!string.IsNullOrEmpty(legacyAssetPath))
+            {
+                var legacyAsset = AssetDatabase.LoadAssetAtPath<T>(legacyAssetPath);
+                if (legacyAsset != null)
+                {
+                    EnsureAssetDirectory(assetPath);
+                    if (AssetDatabase.CopyAsset(legacyAssetPath, assetPath))
+                    {
+                        AssetDatabase.SaveAssets();
+                        return AssetDatabase.LoadAssetAtPath<T>(assetPath);
+                    }
+                }
+            }
+
+            return LoadOrCreate<T>(assetPath);
+        }
+        
         public static T Load<T>(string assetPath) where T : Object
         {
             var asset = AssetDatabase.LoadAssetAtPath<T>(assetPath);
@@ -50,6 +72,15 @@ namespace SerenityAITranslator.Editor.Tools
         public static Texture2D LoadIcon(string iconName)
         {
             return AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/SerenityAITranslator/Editor/Icons/" + iconName);
+        }
+        
+        private static void EnsureAssetDirectory(string assetPath)
+        {
+            var dir = Path.GetDirectoryName(assetPath);
+            if (!Directory.Exists(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
         }
     }
 }

@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using SerenityAITranslator.Editor.Context;
 using SerenityAITranslator.Editor.Services.Common.Collections;
+using SerenityAITranslator.Editor.Services.Settings;
 using SerenityAITranslator.Editor.Services.Settings.Models;
 using SerenityAITranslator.Editor.Services.Translation.Models;
 using SerenityAITranslator.Editor.Services.Tts.AiProviders;
@@ -98,7 +99,7 @@ namespace SerenityAITranslator.Editor.Services.Tts.Managers
         public void CreateVoiceLibrary()
         {
             var ttsSessionData = _context.SessionData.TtsSessionData;
-            var voicesLibraryPath = "Assets/SerenityAIResources/VoicesLibrary/VoicesLibrary.asset";
+            var voicesLibraryPath = SerenitySettingsPaths.VoicesLibrary;
             if (!string.IsNullOrEmpty(ttsSessionData.VoicesLibraryPath))
             {
                 voicesLibraryPath = ttsSessionData.VoicesLibraryPath;

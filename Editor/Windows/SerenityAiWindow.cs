@@ -4,6 +4,7 @@ using SerenityAITranslator.Editor.Services.Common.Collections;
 using SerenityAITranslator.Editor.Services.Common.Enums;
 using SerenityAITranslator.Editor.Services.Common.Views;
 using SerenityAITranslator.Editor.Services.Settings.Views;
+using SerenityAITranslator.Editor.Services.Settings;
 using SerenityAITranslator.Editor.Services.Translation.Collections;
 using SerenityAITranslator.Editor.Services.Translation.Managers;
 using SerenityAITranslator.Editor.Services.Translation.Views;
@@ -116,12 +117,12 @@ namespace SerenityAITranslator.Editor.Windows
         {
             _context = new SerenityContext();
             
-            var sessionData = AssetsUtility.LoadOrCreate<SessionData>("Assets/Editor/SerenityAi/Session.asset");
-            var promtSettings = AssetsUtility.LoadOrCreate<PromtSettingsCollection>("Assets/Editor/SerenityAi/PromtSettings.asset");
-            var translateProvidersConfigurations = AssetsUtility.LoadOrCreate<TranslateProvidersConfigurationCollection>("Assets/Editor/SerenityAi/TranslateProvidersConfigurations.asset");
-            var ttsProvidersConfiguration = AssetsUtility.LoadOrCreate<TtsProvidersConfigurationCollection>("Assets/Editor/SerenityAi/TtsProvidersConfiguration.asset");
-            var ttsPromtSettings = AssetsUtility.LoadOrCreate<PromtSettingsCollection>("Assets/Editor/SerenityAi/TtsPromtSettings.asset");
-            var translateProvidersSettings = AssetsUtility.LoadOrCreate<TranslateProvidersSettingCollection>("Assets/SerenityAITranslator/Settings/TranslateProvidersSetting.asset");
+            var sessionData = AssetsUtility.LoadOrCreate<SessionData>(SerenitySettingsPaths.Session, SerenitySettingsPaths.LegacySession);
+            var promtSettings = AssetsUtility.LoadOrCreate<PromtSettingsCollection>(SerenitySettingsPaths.TranslatePromtSettings, SerenitySettingsPaths.LegacyTranslatePromtSettings);
+            var translateProvidersConfigurations = AssetsUtility.LoadOrCreate<TranslateProvidersConfigurationCollection>(SerenitySettingsPaths.TranslateProvidersConfigurations, SerenitySettingsPaths.LegacyTranslateProvidersConfigurations);
+            var ttsProvidersConfiguration = AssetsUtility.LoadOrCreate<TtsProvidersConfigurationCollection>(SerenitySettingsPaths.TtsProvidersConfiguration, SerenitySettingsPaths.LegacyTtsProvidersConfiguration);
+            var ttsPromtSettings = AssetsUtility.LoadOrCreate<PromtSettingsCollection>(SerenitySettingsPaths.TtsPromtSettings, SerenitySettingsPaths.LegacyTtsPromtSettings);
+            var translateProvidersSettings = AssetsUtility.LoadOrCreate<TranslateProvidersSettingCollection>(SerenitySettingsPaths.TranslateProvidersSetting);
             
             _context.Init(sessionData, promtSettings, translateProvidersConfigurations, translateProvidersSettings, ttsProvidersConfiguration, ttsPromtSettings);
             
@@ -139,7 +140,7 @@ namespace SerenityAITranslator.Editor.Windows
                 _context.SetupVoicesCollection(voicesCollection);
             }
             
-            var languageConverterData = AssetsUtility.LoadOrCreate<LanguageConverterData>("Assets/Editor/SerenityAi/LanguageConverterData.asset");
+            var languageConverterData = AssetsUtility.LoadOrCreate<LanguageConverterData>(SerenitySettingsPaths.LanguageConverterData, SerenitySettingsPaths.LegacyLanguageConverterData);
             _context.SetupLanguageConverterData(languageConverterData);
         }
     }
