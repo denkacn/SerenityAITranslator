@@ -1,7 +1,9 @@
 {
     "name": "SerenityAI.Editor",
     "rootNamespace": "",
-    "references": [],
+    "references": [
+        "Unity.Newtonsoft.Json"
+    ],
     "includePlatforms": [
         "Editor"
     ],

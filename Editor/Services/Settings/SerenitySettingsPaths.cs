@@ -4,7 +4,6 @@ namespace SerenityAITranslator.Editor.Services.Settings
     {
         public const string ProjectDataRoot = "Assets/SerenityAIData";
         public const string ProjectEditorSettingsRoot = ProjectDataRoot + "/Editor/SerenityAi";
-        public const string PackageSettingsRoot = "Assets/SerenityAITranslator/Settings";
         public const string LegacyEditorSettingsRoot = "Assets/Editor/SerenityAi";
 
         public const string Session = ProjectEditorSettingsRoot + "/Session.asset";
@@ -15,7 +14,8 @@ namespace SerenityAITranslator.Editor.Services.Settings
         public const string LanguageConverterData = ProjectEditorSettingsRoot + "/LanguageConverterData.asset";
         public const string VoicesLibrary = ProjectDataRoot + "/VoicesLibrary/VoicesLibrary.asset";
 
-        public const string TranslateProvidersSetting = PackageSettingsRoot + "/TranslateProvidersSetting.asset";
+        public static readonly string PackageSettingsRoot = SerenityPackagePaths.SettingsRoot;
+        public static readonly string TranslateProvidersSetting = PackageSettingsRoot + "/TranslateProvidersSetting.asset";
 
         public const string LegacySession = LegacyEditorSettingsRoot + "/Session.asset";
         public const string LegacyTranslatePromtSettings = LegacyEditorSettingsRoot + "/PromtSettings.asset";

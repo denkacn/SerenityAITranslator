@@ -1,4 +1,5 @@
 using System.IO;
+using SerenityAITranslator.Editor.Services.Settings;
 using UnityEditor;
 using UnityEngine;
 
@@ -71,7 +72,7 @@ namespace SerenityAITranslator.Editor.Tools
 
         public static Texture2D LoadIcon(string iconName)
         {
-            return AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/SerenityAITranslator/Editor/Icons/" + iconName);
+            return AssetDatabase.LoadAssetAtPath<Texture2D>($"{SerenityPackagePaths.IconsRoot}/{iconName}");
         }
         
         private static void EnsureAssetDirectory(string assetPath)

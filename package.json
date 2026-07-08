@@ -1,11 +1,12 @@
 {
   "name": "com.puzikgames.serenityai",
   "displayName": "Serenity AI Translator",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "unity": "2022.1",
   "author": "Denis Puzik",
   "description": "AI Extension for Localization text and voice",
   "dependencies": {
+    "com.unity.nuget.newtonsoft-json": "3.2.1"
   },
   "repository": {
     "type": "git",
