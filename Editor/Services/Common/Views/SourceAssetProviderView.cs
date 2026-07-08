@@ -76,6 +76,10 @@ namespace SerenityAITranslator.Editor.Services.Common.Views
         {
             if (_providers == null || _providers.Length == 0)
             {
+                EditorGUILayout.HelpBox(
+                    "No source asset providers found. Import one extension package from SerenityAITranslator/Extension, then create a provider asset in the project.",
+                    MessageType.Info);
+                
                 if (GUILayout.Button("Reload Providers"))
                     LoadProviders();
                 

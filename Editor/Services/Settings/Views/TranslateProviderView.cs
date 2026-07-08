@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using SerenityAITranslator.Editor.Context;
 using SerenityAITranslator.Editor.Services.Common.Views;
 using SerenityAITranslator.Editor.Services.Settings.Models;
@@ -62,7 +63,7 @@ namespace SerenityAITranslator.Editor.Services.Settings.Views
             if (_newTranslateProviderSettings.ProviderType != providerType)
             {
                 _newTranslateProviderSettings.ProviderType = providerType;
-                var setting = _context.TranslateProvidersSetting.Settings.Find(s => s.ProviderType == providerType);
+                var setting = _context.TranslateProvidersSetting.Settings?.Find(s => s.ProviderType == providerType);
                 if (setting != null)
                 {
                     _newTranslateProviderSettings.Host = setting.Host;
@@ -115,6 +116,7 @@ namespace SerenityAITranslator.Editor.Services.Settings.Views
                 else
                 {
                     _newTranslateProviderSettings.Id = Guid.NewGuid().ToString();
+                    _context.TranslateProvidersConfigurations.Providers ??= new List<TranslateProviderConfigurationItem>();
                     _context.TranslateProvidersConfigurations.Providers.Add(_newTranslateProviderSettings);
                     _context.Save();
                     _isShowAddMenu = false;
@@ -127,6 +129,12 @@ namespace SerenityAITranslator.Editor.Services.Settings.Views
         private void DrawTranslateProviderList()
         {
             var providers = _context.TranslateProvidersConfigurations.Providers;
+            if (providers == null || providers.Count == 0)
+            {
+                EditorGUILayout.HelpBox("No translate providers configured yet. Click 'Add Provider' to create one.", MessageType.Info);
+                return;
+            }
+            
             for (var i = 0; i < providers.Count; i++)
             {
                 var rowStyle = (i % 2 == 0) ? UiStyles.OddRowStyle : UiStyles.EvenRowStyle;

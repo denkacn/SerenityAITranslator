@@ -1,7 +1,7 @@
 {
   "name": "com.puzikgames.serenityai",
   "displayName": "Serenity AI Translator",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "unity": "2022.1",
   "author": "Denis Puzik",
   "description": "AI Extension for Localization text and voice",

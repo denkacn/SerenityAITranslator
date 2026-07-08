@@ -9,6 +9,11 @@ namespace SerenityAITranslator.Editor.Services.Tts.Collections
     public class TtsProvidersConfigurationCollection : ScriptableObject
     {
         public List<TtsProvidersConfigurationItem> Providers;
+        
+        private void OnEnable()
+        {
+            Providers ??= new List<TtsProvidersConfigurationItem>();
+        }
     }
     
     [Serializable]
