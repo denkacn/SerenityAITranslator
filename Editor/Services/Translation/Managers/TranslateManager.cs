@@ -1,8 +1,10 @@
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using SerenityAITranslator.Editor.Context;
 using SerenityAITranslator.Editor.Services.Common.Collections;
+using SerenityAITranslator.Editor.Services.Common.Jobs;
 using SerenityAITranslator.Editor.Services.Common.PromtFactories;
 using SerenityAITranslator.Editor.Services.Settings.Models;
 using SerenityAITranslator.Editor.Services.Translation.AiProviders;
@@ -22,12 +24,12 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
         private readonly SerenityContext _context;
         private CancellationTokenSource _translateAllCancellationTokenSource = new CancellationTokenSource();
 
-        private bool _isTranslateAllStarted = false;
+        public SerenityJob CurrentJob { get; } = new SerenityJob();
         
         public bool IsContextSetup => _context != null;
         public bool IsTranslateProviderAndTranslateSettingSetup => _context != null && _context.SessionData.TranslationSessionData.TranslateProvider != null && _context.SessionData.TranslationSessionData.TranslateSettings != null;
         public string SelectedTranslateProviderId => _context.SessionData.TranslationSessionData.TranslateSettings != null ? _context.SessionData.TranslationSessionData.TranslateSettings.Id : string.Empty;
-        public bool IsTranslateAllStarted => _isTranslateAllStarted;
+        public bool IsTranslateAllStarted => CurrentJob.IsRunning;
 
         public TranslateManager(SerenityContext context)
         {
@@ -153,22 +155,26 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
         
         public void TranslateAll(Action onCompleted)
         {
-            StartTranslateProcess(token => TranslateAllAsync(onCompleted, token), onCompleted);
+            var total = _context.SessionData.TranslationSessionData.TranslationsData?.Count ?? 0;
+            StartTranslateProcess("Translate All", total, token => TranslateAllAsync(onCompleted, token), onCompleted);
         }
         
         public void TranslateSelected(Action onCompleted)
         {
-            StartTranslateProcess(token => TranslateSelectedAsync(onCompleted, token), onCompleted);
+            var total = _context.SessionData.TranslationSessionData.TranslationsData?.Count(t => t.IsSelected) ?? 0;
+            StartTranslateProcess("Translate Selected", total, token => TranslateSelectedAsync(onCompleted, token), onCompleted);
         }
         
         public void TranslateToAllLanguages(TranslatedRowData translatedData, Action onCompleted)
         {
-            StartTranslateProcess(token => TranslateOneAsyncToAllLanguages(translatedData, onCompleted, token), onCompleted);
+            var languages = _context.SessionData.TranslationSessionData.AvailableLanguages;
+            var total = languages?.Count(l => l != _context.SessionData.TranslationSessionData.SourceLanguage) ?? 0;
+            StartTranslateProcess("Translate To All Languages", total, token => TranslateOneAsyncToAllLanguages(translatedData, onCompleted, token), onCompleted);
         }
 
         public void TranslateOne(TranslatedRowData translatedData, Action onCompleted)
         {
-            StartTranslateProcess(token => TranslateOneAsync(translatedData, onCompleted, token), onCompleted);
+            StartTranslateProcess("Translate One", 1, token => TranslateOneAsync(translatedData, onCompleted, token), onCompleted);
         }
 
         public void StopTranslateProcess()
@@ -196,12 +202,18 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
             var result = await translationSessionData.TranslateProvider
                 .GetTranslate(promtData, translationSessionData.TranslateSettings, translationSessionData.PromtFactory);
 
+            CurrentJob.Step(translatedData.Term);
+            
             if (!cancellationToken.IsCancellationRequested && result.IsNoError)
             {
                 if (!TryGetLanguageIndex(translationSessionData.DestinationLanguage, out var destinationLanguageIndex)) return;
                 translatedData.TranslatedText[destinationLanguageIndex] = result.Translation;
                 translatedData.IsShowTranslated = true;
                 onCompleted?.Invoke();
+            }
+            else if (!cancellationToken.IsCancellationRequested)
+            {
+                CurrentJob.AddError(result.ErrorMessage ?? $"Failed to translate term: {translatedData.Term}");
             }
         }
         
@@ -226,10 +238,16 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
                 var result = await translationSessionData.TranslateProvider
                     .GetTranslate(promtData, translationSessionData.TranslateSettings, translationSessionData.PromtFactory);
                 
+                CurrentJob.Step(destinationLanguage);
+                
                 if (!cancellationToken.IsCancellationRequested && result.IsNoError)
                 {
                     if (!TryGetLanguageIndex(destinationLanguage, out var destinationLanguageIndex)) continue;
                     translatedData.TranslatedText[destinationLanguageIndex] = result.Translation;
+                }
+                else if (!cancellationToken.IsCancellationRequested)
+                {
+                    CurrentJob.AddError(result.ErrorMessage ?? $"Failed to translate term '{translatedData.Term}' to '{destinationLanguage}'.");
                 }
             }
             
@@ -419,35 +437,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
             var translationSessionData = _context.SessionData.TranslationSessionData;
             translationSessionData.ProviderId = provider.Id;
             translationSessionData.TranslateSettings = provider;
-            
-            switch (provider.ProviderType)
-            {
-                case TextProviderType.None:
-                    break;
-                case TextProviderType.LmStudio:
-                    translationSessionData.TranslateProvider = new LmStudioTranslateProvider();
-                    break;
-                case TextProviderType.Ollama:
-                    translationSessionData.TranslateProvider = new OllamaTranslateProvider();
-                    break;
-                case TextProviderType.OpenAi:
-                    translationSessionData.TranslateProvider = new OpenAiTranslateProvider();
-                    break;
-                case TextProviderType.DeepSeek:
-                    translationSessionData.TranslateProvider = new DeepSeekTranslateProvider();
-                    break;
-                case TextProviderType.Grok:
-                    translationSessionData.TranslateProvider = new GrokTranslateProvider();
-                    break;
-                case TextProviderType.GoogleAi:
-                    translationSessionData.TranslateProvider = new GoogleAiTranslateProvider();
-                    break;
-                case TextProviderType.GoogleTranslate:
-                    translationSessionData.TranslateProvider = new GoogleTranslateProvider();
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+            translationSessionData.TranslateProvider = TranslateProviderFactory.Create(provider.ProviderType);
 
             SaveSession();
         }
@@ -511,11 +501,11 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
             SaveSession();  
         }
 
-        private void StartTranslateProcess(Func<CancellationToken, Task> operation, Action onCompleted)
+        private void StartTranslateProcess(string jobName, int total, Func<CancellationToken, Task> operation, Action onCompleted)
         {
-            if (_isTranslateAllStarted) return;
+            if (CurrentJob.IsRunning) return;
             
-            _isTranslateAllStarted = true;
+            CurrentJob.Begin(jobName, total);
             _translateAllCancellationTokenSource?.Dispose();
             _translateAllCancellationTokenSource = new CancellationTokenSource();
             
@@ -530,15 +520,19 @@ namespace SerenityAITranslator.Editor.Services.Translation.Managers
             }
             catch (OperationCanceledException)
             {
+                CurrentJob.Cancel();
                 Debug.Log("[SerenityAI] Translation process canceled.");
             }
             catch (Exception ex)
             {
+                CurrentJob.Fail(ex.Message);
                 Debug.LogError($"[SerenityAI] Translation process failed: {ex}");
             }
             finally
             {
-                _isTranslateAllStarted = false;
+                if (CurrentJob.IsRunning)
+                    CurrentJob.Complete();
+                
                 onCompleted?.Invoke();
             }
         }

@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using SerenityAITranslator.Editor.Context;
 using SerenityAITranslator.Editor.Services.Common.Collections;
+using SerenityAITranslator.Editor.Services.Common.Jobs;
 using SerenityAITranslator.Editor.Services.Settings;
 using SerenityAITranslator.Editor.Services.Settings.Models;
 using SerenityAITranslator.Editor.Services.Translation.Models;
@@ -21,7 +22,7 @@ namespace SerenityAITranslator.Editor.Services.Tts.Managers
         private readonly SerenityContext _context;
         private CancellationTokenSource _ttsCancellationTokenSource = new CancellationTokenSource();
         private TranslatedRowData _translatedRowData;
-        private bool _isTtsStarted;
+        public SerenityJob CurrentJob { get; } = new SerenityJob();
         
         public string SelectedTtsProviderId => _context.SessionData.TtsSessionData.TtsSettings != null ? _context.SessionData.TtsSessionData.TtsSettings.Id : string.Empty;
         public bool IsTtsProviderAndTtsSettingSetup => _context != null && _context.SessionData.TtsSessionData.TranslateProvider != null && _context.SessionData.TtsSessionData.TtsSettings != null;
@@ -62,35 +63,16 @@ namespace SerenityAITranslator.Editor.Services.Tts.Managers
             var ttsSessionData = _context.SessionData.TtsSessionData;
             ttsSessionData.ProviderId = provider.Id;
             ttsSessionData.TtsSettings = provider;
-            
-            switch (provider.ProviderType)
-            {
-                case TtsProviderType.None:
-                    break;
-                case TtsProviderType.Coqui:
-                    ttsSessionData.TranslateProvider = new CoquiTtsProvider();
-                    break;
-                case TtsProviderType.ElevenLabs:
-                    ttsSessionData.TranslateProvider = new ElevenLabsTtsProvider();
-                    break;
-                case TtsProviderType.Gemini:
-                    ttsSessionData.TranslateProvider = new GeminiTtsProvider();
-                    break;
-                case TtsProviderType.Resemble:
-                    ttsSessionData.TranslateProvider = new ResembleTtsProvider();
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+            ttsSessionData.TranslateProvider = TtsProviderFactory.Create(provider.ProviderType);
 
             SaveSession();
         }
 
         public void TranslateOne(TranslatedRowData row, Action repaint)
         {
-            if (_isTtsStarted) return;
+            if (CurrentJob.IsRunning) return;
             
-            _isTtsStarted = true;
+            CurrentJob.Begin("Generate Voice", 1);
             _ttsCancellationTokenSource?.Dispose();
             _ttsCancellationTokenSource = new CancellationTokenSource();
             _ = RunTtsProcessAsync(row, repaint, _ttsCancellationTokenSource.Token);
@@ -185,6 +167,8 @@ namespace SerenityAITranslator.Editor.Services.Tts.Managers
             var promtData = new TtsPromtData(text, correctLanguage, path);
             var result = await ttsSessionData.TranslateProvider
                 .GetTranslate(promtData, ttsSessionData.TtsSettings, ttsSessionData.SelectedPromt);
+            
+            CurrentJob.Step(translatedData.Term);
 
             if (!cancellationToken.IsCancellationRequested && result.IsNoError)
             {
@@ -213,6 +197,10 @@ namespace SerenityAITranslator.Editor.Services.Tts.Managers
                 }
                 
                 onCompleted?.Invoke();
+            }
+            else if (!cancellationToken.IsCancellationRequested)
+            {
+                CurrentJob.AddError(result.ErrorMessage ?? $"Failed to generate voice for term: {translatedData.Term}");
             }
         }
 
@@ -244,15 +232,19 @@ namespace SerenityAITranslator.Editor.Services.Tts.Managers
             }
             catch (OperationCanceledException)
             {
+                CurrentJob.Cancel();
                 Debug.Log("[SerenityAI] TTS process canceled.");
             }
             catch (Exception ex)
             {
+                CurrentJob.Fail(ex.Message);
                 Debug.LogError($"[SerenityAI] TTS process failed: {ex}");
             }
             finally
             {
-                _isTtsStarted = false;
+                if (CurrentJob.IsRunning)
+                    CurrentJob.Complete();
+                
                 repaint?.Invoke();
             }
         }

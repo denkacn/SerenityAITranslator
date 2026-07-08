@@ -172,6 +172,10 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
             GUILayout.EndHorizontal();
             
             GUILayout.Space(10);
+            
+            DrawJobStatus(_context.TranslateManager.CurrentJob);
+            
+            GUILayout.Space(10);
             GUILayout.EndVertical();
         }
     }
