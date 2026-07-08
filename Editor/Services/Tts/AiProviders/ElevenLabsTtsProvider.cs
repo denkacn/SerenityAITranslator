@@ -1,9 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using SerenityAITranslator.Editor.Services.Common.Ai;
 using SerenityAITranslator.Editor.Services.Tts.Collections;
 using SerenityAITranslator.Editor.Services.Tts.Models;
 
@@ -11,17 +11,12 @@ namespace SerenityAITranslator.Editor.Services.Tts.AiProviders
 {
     public class ElevenLabsTtsProvider : BaseTtsProvider
     {
-        private HttpClient _httpClient;
-
         private const string Extension = ".mp3";
         private const string Prefix = "elevenlabs";
         
         public override async Task<TtsResultData> GetTranslate(TtsPromtData promtData, TtsProvidersConfigurationItem settings, string promt)
         {
             var token = await GetToken(settings);
-            
-            _httpClient = new HttpClient();
-            _httpClient.DefaultRequestHeaders.Add("xi-api-key", token);
 
             try
             {
@@ -38,13 +33,16 @@ namespace SerenityAITranslator.Editor.Services.Tts.AiProviders
                 };
                 
                 var jsonData = JsonConvert.SerializeObject(data);
-                var content = new StringContent(jsonData, Encoding.UTF8, "application/json");
+                var requestResult = await AiRequestService.PostJsonForBytesAsync(
+                    apiUrl,
+                    jsonData,
+                    new Dictionary<string, string> { { "xi-api-key", token } });
                 
-                var response = await _httpClient.PostAsync(apiUrl, content);
-                
-                if (response.IsSuccessStatusCode)
+                if (requestResult.IsSuccess)
                 {
-                    var audioBytes = await response.Content.ReadAsByteArrayAsync();
+                    var audioBytes = requestResult.Bytes;
+                    if (audioBytes == null || audioBytes.Length == 0)
+                        return new TtsResultData(Prefix, Extension).Failure("Audio response is empty.");
                     
                     await File.WriteAllBytesAsync($"{promtData.Path}_{Prefix}{Extension}", audioBytes);
                     UnityEngine.Debug.Log($"Audio saved as: {promtData.Path}_{Prefix}{Extension}");
@@ -52,18 +50,16 @@ namespace SerenityAITranslator.Editor.Services.Tts.AiProviders
                 }
                 else
                 {
-                    var errorText = await response.Content.ReadAsStringAsync();
+                    UnityEngine.Debug.LogError($"[ElevenLabsTtsProvider] Error: {requestResult.ErrorMessage}");
+                    UnityEngine.Debug.LogError($"[ElevenLabsTtsProvider] Message: {requestResult.Text}");
                     
-                    UnityEngine.Debug.LogError($"[ElevenLabsTtsProvider] Error: {response.StatusCode}");
-                    UnityEngine.Debug.LogError($"[ElevenLabsTtsProvider] Message: {errorText}");
-                    
-                    return new TtsResultData(Prefix, Extension).Failure();
+                    return new TtsResultData(Prefix, Extension).Failure(requestResult.ErrorMessage);
                 }
             }
             catch (Exception ex)
             {
                 UnityEngine.Debug.LogError($"[ElevenLabsTtsProvider] Exception: {ex.Message}");
-                return new TtsResultData(Prefix, Extension).Failure();
+                return new TtsResultData(Prefix, Extension).Failure(ex.Message);
             }
         }
     }

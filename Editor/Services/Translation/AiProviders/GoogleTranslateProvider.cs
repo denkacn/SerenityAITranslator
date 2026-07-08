@@ -1,10 +1,9 @@
-using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using SerenityAITranslator.Editor.Services.Common.Ai;
 using SerenityAITranslator.Editor.Services.Common.PromtFactories;
 using SerenityAITranslator.Editor.Services.Translation.Collections;
 using SerenityAITranslator.Editor.Services.Translation.Models;
-using UnityEngine;
 
 namespace SerenityAITranslator.Editor.Services.Translation.AiProviders
 {
@@ -14,9 +13,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.AiProviders
         {
             var token = await GetToken(settings);
             var url = $"{string.Concat(settings.Host, settings.Endpoint)}?key={token}";
-            
-            var httpClient = new HttpClient();
-            
+
             var requestBody = new
             {
                 q = promtData.From,
@@ -26,18 +23,13 @@ namespace SerenityAITranslator.Editor.Services.Translation.AiProviders
             };
             
             var json = JsonConvert.SerializeObject(requestBody);
-            Debug.Log(json);
+            var requestResult = await AiRequestService.PostJsonAsync(url, json);
+            if (!requestResult.IsSuccess)
+            {
+                return new TranslatedResultData(promtData.Term, string.Empty).Failure(requestResult.ErrorMessage);
+            }
             
-            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
-            
-            var response = await httpClient.PostAsync(url, content);
-            //response.EnsureSuccessStatusCode();
-            
-            var responseContent = await response.Content.ReadAsStringAsync();
-            
-            Debug.Log(responseContent); 
-            
-            var result = JsonConvert.DeserializeObject<TranslationResponse>(responseContent);
+            var result = JsonConvert.DeserializeObject<TranslationResponse>(requestResult.Text);
             
             if (result.Data != null && result.Data.Translations != null && result.Data.Translations.Length > 0)
             {
@@ -45,7 +37,7 @@ namespace SerenityAITranslator.Editor.Services.Translation.AiProviders
             }
             else
             {
-                return new TranslatedResultData(promtData.Term, string.Empty).Failure();
+                return new TranslatedResultData(promtData.Term, string.Empty).Failure("The answer does not contain the expected data.");
             }
         }
         

@@ -1,12 +1,12 @@
 using System;
-using System.Text;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using SerenityAITranslator.Editor.Services.Common.Ai;
 using SerenityAITranslator.Editor.Services.Common.PromtFactories;
 using SerenityAITranslator.Editor.Services.Translation.Collections;
 using SerenityAITranslator.Editor.Services.Translation.Models;
-using Unity.Plastic.Newtonsoft.Json;
 using UnityEngine;
-using UnityEngine.Networking;
 
 namespace SerenityAITranslator.Editor.Services.Translation.AiProviders
 {
@@ -21,61 +21,49 @@ namespace SerenityAITranslator.Editor.Services.Translation.AiProviders
                 stream = false
             };
             
-            Debug.Log($"[LmStudioTranslateProvider] The text of the model:  {requestData.prompt}");
-            
             var jsonBody = JsonConvert.SerializeObject(requestData);
-            var bodyRaw = Encoding.UTF8.GetBytes(jsonBody);
             var apiUrl = string.Concat(settings.Host, settings.Endpoint);
-
-            using var www = new UnityWebRequest(apiUrl, "POST");
+            var headers = new Dictionary<string, string>();
             
-            www.uploadHandler = new UploadHandlerRaw(bodyRaw);
-            www.downloadHandler = new DownloadHandlerBuffer();
-            www.timeout = 300;
-            www.SetRequestHeader("Content-Type", "application/json");
-
             if (settings.IsTokenExist)
             {
                 var token = await GetToken(settings);
-                www.SetRequestHeader("Authorization", $"Bearer {token}");
+                headers.Add("Authorization", $"Bearer {token}");
             }
 
-            await www.SendWebRequest();
-
-            if (www.result != UnityWebRequest.Result.Success)
+            var requestResult = await AiRequestService.PostJsonAsync(apiUrl, jsonBody, headers);
+            if (!requestResult.IsSuccess)
             {
-                Debug.LogError("Request error:" + www.error);
+                Debug.LogError($"[OllamaTranslateProvider] Request failed: {requestResult.ErrorMessage}");
+                return new TranslatedResultData(promtData.Term, string.Empty).Failure(requestResult.ErrorMessage);
             }
-            else
+            
+            Response? response = null;
+            try
             {
-                Response? response = null;
-                try
-                {
-                    response = JsonConvert.DeserializeObject<Response>(www.downloadHandler.text);
-                }
-                catch (Exception exp)
-                {
-                    Debug.LogError(exp);
-                    return new TranslatedResultData(promtData.Term, string.Empty).Failure();
-                }
+                response = JsonConvert.DeserializeObject<Response>(requestResult.Text);
+            }
+            catch (Exception exp)
+            {
+                Debug.LogError(exp);
+                return new TranslatedResultData(promtData.Term, string.Empty).Failure(exp.Message);
+            }
                 
-                var content = response?.response;
-                Debug.Log($"[LmStudioTranslateProvider] The text of the model:  {content}");
+            var content = response?.response;
 
-                if (content.Length >= 2)
+            if (!string.IsNullOrEmpty(content) && content.Length >= 2)
+            {
+                var result = content;
+
+                if (content.StartsWith("{") && content.EndsWith("}"))
                 {
-                    var result = content;
-
-                    if (content.StartsWith("{") && content.EndsWith("}"))
-                    {
-                        result = content.Substring(1, content.Length - 2);
-                    }
-
-                    return new TranslatedResultData(promtData.Term, result);
+                    result = content.Substring(1, content.Length - 2);
                 }
+
+                return new TranslatedResultData(promtData.Term, result);
             }
 
-            return new TranslatedResultData(promtData.Term, string.Empty).Failure();
+            return new TranslatedResultData(promtData.Term, string.Empty).Failure("The answer does not contain the expected data.");
         }
 
         private struct Request

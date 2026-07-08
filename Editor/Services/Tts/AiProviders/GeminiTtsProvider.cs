@@ -1,8 +1,7 @@
 using System;
-using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using SerenityAITranslator.Editor.Services.Common.Ai;
 using SerenityAITranslator.Editor.Services.Tts.Collections;
 using SerenityAITranslator.Editor.Services.Tts.Converters;
 using SerenityAITranslator.Editor.Services.Tts.Models;
@@ -15,12 +14,9 @@ namespace SerenityAITranslator.Editor.Services.Tts.AiProviders
         private const string Extension = ".wav";
         private const string Prefix = "gemini";
         
-        private HttpClient _httpClient;
-
         public override async Task<TtsResultData> GetTranslate(TtsPromtData promtData, TtsProvidersConfigurationItem settings, string promt)
         {
             var apiKey = await GetToken(settings);
-            _httpClient = new HttpClient();
          
             var request = new GeminiTTSRequest
             {
@@ -56,13 +52,11 @@ namespace SerenityAITranslator.Editor.Services.Tts.AiProviders
                 apiUrl = $"{apiUrl}:generateContent?key={apiKey}";
                 
                 var json = JsonConvert.SerializeObject(request);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-                var response = await _httpClient.PostAsync(apiUrl, content);
+                var requestResult = await AiRequestService.PostJsonAsync(apiUrl, json);
                 
-                if (response.IsSuccessStatusCode)
+                if (requestResult.IsSuccess)
                 {
-                    var responseContent = await response.Content.ReadAsStringAsync();
-                    var ttsResponse = JsonConvert.DeserializeObject<GeminiTTSResponse>(responseContent);
+                    var ttsResponse = JsonConvert.DeserializeObject<GeminiTTSResponse>(requestResult.Text);
 
                     if (ttsResponse?.Candidates == null || ttsResponse.Candidates.Length == 0)
                         throw new Exception("No audio data received");
@@ -78,18 +72,16 @@ namespace SerenityAITranslator.Editor.Services.Tts.AiProviders
                 }
                 else
                 {
-                    var errorText = await response.Content.ReadAsStringAsync();
+                    Debug.LogError($"[GeminiTtsProvider] Error: {requestResult.ErrorMessage}");
+                    Debug.LogError($"[GeminiTtsProvider] Message: {requestResult.Text}");
                     
-                    Debug.Log($"Error: {response.StatusCode}");
-                    Debug.Log($"Message: {response}");
-                    
-                    return new TtsResultData(Prefix, Extension).Failure();
+                    return new TtsResultData(Prefix, Extension).Failure(requestResult.ErrorMessage);
                 }
             }
             catch (Exception e)
             {
                 Debug.LogError(e);
-                throw;
+                return new TtsResultData(Prefix, Extension).Failure(e.Message);
             }
         }
 

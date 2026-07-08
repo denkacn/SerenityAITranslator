@@ -14,9 +14,10 @@ namespace SerenityAITranslator.Editor.Services.Translation.Models
             IsNoError = true;
         }
 
-        public TranslatedResultData Failure()
+        public TranslatedResultData Failure(string errorMessage = null)
         {
             IsNoError = false;
+            ErrorMessage = errorMessage;
             return this;
         }
     }

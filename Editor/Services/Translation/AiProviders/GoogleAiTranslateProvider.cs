@@ -1,10 +1,10 @@
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using SerenityAITranslator.Editor.Services.Common.Ai;
 using SerenityAITranslator.Editor.Services.Common.PromtFactories;
 using SerenityAITranslator.Editor.Services.Translation.Collections;
 using SerenityAITranslator.Editor.Services.Translation.Models;
 using UnityEngine;
-using UnityEngine.Networking;
 
 namespace SerenityAITranslator.Editor.Services.Translation.AiProviders
 {
@@ -16,56 +16,47 @@ namespace SerenityAITranslator.Editor.Services.Translation.AiProviders
             var url = $"{string.Concat(settings.Host, settings.Endpoint)}{settings.Model}:generateContent";
             
             var jsonBody = JsonConvert.SerializeObject(new RequestBody(promtFactory.GetPromt(promtData)));
-            var bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonBody);
+            var requestResult = await AiRequestService.PostJsonAsync(
+                url,
+                jsonBody,
+                new System.Collections.Generic.Dictionary<string, string>
+                {
+                    { "X-goog-api-key", apiKey }
+                });
             
-            using (var www = new UnityWebRequest(url, "POST"))
+            if (!requestResult.IsSuccess)
             {
-                www.uploadHandler = new UploadHandlerRaw(bodyRaw);
-                www.downloadHandler = new DownloadHandlerBuffer();
-                www.SetRequestHeader("Content-Type", "application/json");
-                www.SetRequestHeader("X-goog-api-key", apiKey);
-                www.timeout = 300;
-                
-                await www.SendWebRequest();
-                
-                if (www.result != UnityWebRequest.Result.Success)
-                {
-                    Debug.LogError("[GoogleAiTranslateProvider] Web Request error: " + www.error);
-                }
-                else
-                {
-                    var jsonResponse = www.downloadHandler.text;
-                    var response = JsonConvert.DeserializeObject<ResponseData>(jsonResponse);
+                Debug.LogError($"[GoogleAiTranslateProvider] Request failed: {requestResult.ErrorMessage}");
+                return new TranslatedResultData(promtData.Term, string.Empty).Failure(requestResult.ErrorMessage);
+            }
+            
+            var response = JsonConvert.DeserializeObject<ResponseData>(requestResult.Text);
 
-                    if (response != null && response.candidates != null && response.candidates.Length > 0)
-                    {
-                        var content = response.candidates[0].content.parts[0].text;
+            if (response != null && response.candidates != null && response.candidates.Length > 0)
+            {
+                var content = response.candidates[0].content.parts[0].text;
                         
-                        if (content.Length >= 2)
-                        {
-                            while (content.EndsWith("\r") || content.EndsWith("\n"))
-                            {
-                                content = content.Substring(0, content.Length - 1);
-                            }
-                            
-                            var result = content;
-                            
-                            if (content.StartsWith("{") && content.EndsWith("}"))
-                            {
-                                result = content.Substring(1, content.Length - 2);
-                            }
-                            
-                            return new TranslatedResultData(promtData.Term, result);
-                        }
-                    }
-                    else
+                if (!string.IsNullOrEmpty(content) && content.Length >= 2)
+                {
+                    while (content.EndsWith("\r") || content.EndsWith("\n"))
                     {
-                        Debug.LogWarning("[GoogleAiTranslateProvider] It was not possible to extract the text from the response!");
+                        content = content.Substring(0, content.Length - 1);
                     }
+                            
+                    var result = content;
+                            
+                    if (content.StartsWith("{") && content.EndsWith("}"))
+                    {
+                        result = content.Substring(1, content.Length - 2);
+                    }
+                            
+                    return new TranslatedResultData(promtData.Term, result);
                 }
             }
             
-            return new TranslatedResultData(promtData.Term, string.Empty).Failure();
+            const string errorMessage = "It was not possible to extract the text from the response.";
+            Debug.LogWarning($"[GoogleAiTranslateProvider] {errorMessage}");
+            return new TranslatedResultData(promtData.Term, string.Empty).Failure(errorMessage);
         }
         
         [System.Serializable]

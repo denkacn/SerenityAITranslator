@@ -14,9 +14,10 @@ namespace SerenityAITranslator.Editor.Services.Tts.Models
             IsNoError = true;       
         }
         
-        public TtsResultData Failure()
+        public TtsResultData Failure(string errorMessage = null)
         {
             IsNoError = false;
+            ErrorMessage = errorMessage;
             return this;
         }
     }

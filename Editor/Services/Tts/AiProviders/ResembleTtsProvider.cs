@@ -1,10 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Net;
-using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using SerenityAITranslator.Editor.Services.Common.Ai;
 using SerenityAITranslator.Editor.Services.Tts.Collections;
 using SerenityAITranslator.Editor.Services.Tts.Models;
 using UnityEngine;
@@ -16,21 +15,10 @@ namespace SerenityAITranslator.Editor.Services.Tts.AiProviders
         private const string Extension = ".mp3";
         private const string Prefix = "resemble";
 
-        private HttpClient _httpClient;
-
         public override async Task<TtsResultData> GetTranslate(TtsPromtData promtData,
             TtsProvidersConfigurationItem settings, string promt)
         {
             var apiKey = await GetToken(settings);
-
-            var handler = new HttpClientHandler
-            {
-                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
-            };
-            _httpClient = new HttpClient(handler);
-            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
-            //_httpClient.DefaultRequestHeaders.Add("Content-Type", "application/json");
-            _httpClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip");
 
             var request = new ResembleRequest()
             {
@@ -41,39 +29,44 @@ namespace SerenityAITranslator.Editor.Services.Tts.AiProviders
             };
 
             var json = JsonConvert.SerializeObject(request);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
   
             var apiUrl = string.Concat(settings.Host, settings.Endpoint);
             
             Debug.Log($"Resemble API URL: {apiUrl}");
-            
-            var response = await _httpClient.PostAsync(apiUrl, content);
 
-            if (response.IsSuccessStatusCode)
+            try
             {
-                var responseContent = await response.Content.ReadAsStringAsync();
-                var ttsResponse = JsonConvert.DeserializeObject<ResembleResponse>(responseContent);
-                
-                if (ttsResponse?.AudioContent == null)
-                    throw new Exception("No audio data received");
+                var requestResult = await AiRequestService.PostJsonAsync(
+                    apiUrl,
+                    json,
+                    new Dictionary<string, string> { { "Authorization", $"Bearer {apiKey}" } });
 
-                var audioBytes = Convert.FromBase64String(ttsResponse.AudioContent);
-                
-                //AudioConverter.ConvertAndSavePcmToWav(audioBytes, $"{promtData.Path}_{Prefix}{Extension}", sampleRate: (int)ttsResponse.SampleRate, channels: 1, bitsPerSample: 16);
-                await File.WriteAllBytesAsync($"{promtData.Path}_{Prefix}{Extension}", audioBytes);
-                
-                Debug.Log($"Audio saved as: {promtData.Path}_{Prefix}{Extension}");
-                    
-                return new TtsResultData(Prefix, Extension);
+                if (requestResult.IsSuccess)
+                {
+                    var ttsResponse = JsonConvert.DeserializeObject<ResembleResponse>(requestResult.Text);
+
+                    if (ttsResponse?.AudioContent == null)
+                        return new TtsResultData(Prefix, Extension).Failure("No audio data received.");
+
+                    var audioBytes = Convert.FromBase64String(ttsResponse.AudioContent);
+
+                    //AudioConverter.ConvertAndSavePcmToWav(audioBytes, $"{promtData.Path}_{Prefix}{Extension}", sampleRate: (int)ttsResponse.SampleRate, channels: 1, bitsPerSample: 16);
+                    await File.WriteAllBytesAsync($"{promtData.Path}_{Prefix}{Extension}", audioBytes);
+
+                    Debug.Log($"Audio saved as: {promtData.Path}_{Prefix}{Extension}");
+
+                    return new TtsResultData(Prefix, Extension);
+                }
+
+                Debug.LogError($"[ResembleTtsProvider] Error: {requestResult.ErrorMessage}");
+                Debug.LogError($"[ResembleTtsProvider] Message: {requestResult.Text}");
+
+                return new TtsResultData(Prefix, Extension).Failure(requestResult.ErrorMessage);
             }
-            else
+            catch (Exception ex)
             {
-                var errorText = await response.Content.ReadAsStringAsync();
-
-                Debug.Log($"Error: {response.StatusCode}");
-                Debug.Log($"Message: {errorText}");
-
-                return new TtsResultData(Prefix, Extension).Failure();
+                Debug.LogError($"[ResembleTtsProvider] Exception: {ex.Message}");
+                return new TtsResultData(Prefix, Extension).Failure(ex.Message);
             }
         }
 
