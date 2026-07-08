@@ -47,19 +47,20 @@ namespace SerenityAITranslator.Editor.Services.Tts.Views
                 var row = rows[i];
 
                 EditorGUILayout.BeginHorizontal(rowStyle);
+                var rowHeight = Mathf.Clamp(Mathf.Max(30, UiStyles.TableCellStyle.CalcHeight(new GUIContent(row.SourceText), 400)), 30, 800);
                 
-                EditorGUILayout.LabelField(row.Term, UiStyles.LabelRowStyle,GUILayout.Width(200));
+                EditorGUILayout.LabelField(row.Term, UiStyles.TableCellStyle, GUILayout.Width(200), GUILayout.Height(rowHeight));
                 //EditorGUILayout.LabelField(row.SourceText, UiStyles.LabelRowStyle, GUILayout.Width(400), GUILayout.MinHeight(30), GUILayout.MaxHeight(800));
                 
                 if (_editRowId == row.Id)
                 {
-                    row.SourceText = EditorGUILayout.TextArea(row.SourceText, UiStyles.WrapTextAreaStyle, GUILayout.Width(415), GUILayout.MinHeight(30), GUILayout.MaxHeight(800));
+                    row.SourceText = EditorGUILayout.TextArea(row.SourceText, UiStyles.WrapTextAreaStyle, GUILayout.Width(415), GUILayout.Height(rowHeight));
                     //GUI.FocusControl(null);
                     //Repaint();
                 }
                 else
                 {
-                    EditorGUILayout.LabelField(row.SourceText, UiStyles.LabelRowStyle, GUILayout.Width(400), GUILayout.MinHeight(30), GUILayout.MaxHeight(800));
+                    EditorGUILayout.LabelField(row.SourceText, UiStyles.TableCellStyle, GUILayout.Width(400), GUILayout.Height(rowHeight));
                 }
                 
                 if (_context.TtsManager.IsTtsProviderAndTtsSettingSetup)

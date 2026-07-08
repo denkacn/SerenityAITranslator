@@ -78,6 +78,21 @@ namespace SerenityAITranslator.Editor.Tools
             alignment = TextAnchor.UpperLeft,
             normal = { textColor = UiTools.HexToColor("#fff600") }
         };
+        
+        public static readonly GUIStyle TableCellStyle = new GUIStyle(LabelRowStyle)
+        {
+            alignment = TextAnchor.MiddleLeft
+        };
+        
+        public static readonly GUIStyle TableCellStyleGreen = new GUIStyle(LabelRowStyleGreen)
+        {
+            alignment = TextAnchor.MiddleLeft
+        };
+        
+        public static readonly GUIStyle TableCellStyleYellow = new GUIStyle(LabelRowStyleYellow)
+        {
+            alignment = TextAnchor.MiddleLeft
+        };
 
         public static readonly GUIStyle ButtonStyleGreenText = new GUIStyle(GUI.skin.button)
         {

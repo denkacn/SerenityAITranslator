@@ -54,28 +54,30 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
                 EditorGUILayout.BeginHorizontal(rowStyle);
                 
                 //EditorGUILayout.LabelField(row.Id.ToString(), GUILayout.Width(40));
+                var sourceHeight = UiStyles.TableCellStyle.CalcHeight(new GUIContent(row.SourceText), 400);
+                var translationHeight = UiStyles.TableCellStyle.CalcHeight(new GUIContent(translatedText), 400);
+                var rowHeight = Mathf.Clamp(Mathf.Max(30, sourceHeight, translationHeight), 30, 800);
+                
                 row.IsSelected = EditorGUILayout.Toggle(row.IsSelected, GUILayout.Width(30));
-                EditorGUILayout.LabelField(row.Term, UiStyles.LabelRowStyle,GUILayout.Width(200));
-                EditorGUILayout.LabelField(row.SourceText, UiStyles.LabelRowStyle, GUILayout.Width(400), GUILayout.MinHeight(30), GUILayout.MaxHeight(800));
-
-                var height = UiStyles.LabelRowStyle.CalcHeight(new GUIContent(translatedText), 400);
+                EditorGUILayout.LabelField(row.Term, UiStyles.TableCellStyle, GUILayout.Width(200), GUILayout.Height(rowHeight));
+                EditorGUILayout.LabelField(row.SourceText, UiStyles.TableCellStyle, GUILayout.Width(400), GUILayout.Height(rowHeight));
                 
                 if (row.IsShowTranslated)
                 {
                     if (_editRowId == row.Id)
                     {
-                        row.TranslatedText[destinationLanguageIndex] = EditorGUILayout.TextArea(row.TranslatedText[destinationLanguageIndex], GUILayout.Width(415));
+                        row.TranslatedText[destinationLanguageIndex] = EditorGUILayout.TextArea(row.TranslatedText[destinationLanguageIndex], GUILayout.Width(415), GUILayout.Height(rowHeight));
                         //GUI.FocusControl(null);
                         //Repaint();
                     }
                     else
                     {
-                        EditorGUILayout.LabelField(translatedText, UiStyles.LabelRowStyleGreen, GUILayout.Width(400), GUILayout.Height(height));
+                        EditorGUILayout.LabelField(translatedText, UiStyles.TableCellStyleGreen, GUILayout.Width(400), GUILayout.Height(rowHeight));
                     }
                 }
                 else
                 {
-                    EditorGUILayout.LabelField(translatedText, UiStyles.LabelRowStyle, GUILayout.Width(400), GUILayout.Height(height));
+                    EditorGUILayout.LabelField(translatedText, UiStyles.TableCellStyle, GUILayout.Width(400), GUILayout.Height(rowHeight));
                 }
                 
                 if (_context.TranslateManager.IsTranslateProviderAndTranslateSettingSetup)
@@ -145,8 +147,8 @@ namespace SerenityAITranslator.Editor.Services.Translation.Views
                     
                     EditorGUILayout.LabelField("●",
                         row.TranslatedText[destinationLanguageIndex] != row.OriginalText
-                            ? UiStyles.LabelRowStyleGreen
-                            : UiStyles.LabelRowStyleYellow, GUILayout.Width(15));
+                            ? UiStyles.TableCellStyleGreen
+                            : UiStyles.TableCellStyleYellow, GUILayout.Width(15), GUILayout.Height(rowHeight));
                 }
                 
                 GUILayout.FlexibleSpace();
