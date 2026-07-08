@@ -40,6 +40,8 @@ The window has three main tabs:
 - `Translate` - load localization terms and translate text.
 - `Voice` - generate and manage voice clips.
 
+![Settings window](Doc/settings-window.png)
+
 ## Choose A Localization Source
 
 The main package does not force one localization system. Install the source provider extension that matches your project.
@@ -93,6 +95,8 @@ Translation prompts can use placeholders expected by the package, such as target
 
 ## Translate Text
 
+![Translate window](Doc/translate-window.png)
+
 1. Open the `Translate` tab.
 2. Select your source asset provider.
 3. Choose source and destination languages.
@@ -129,6 +133,8 @@ For most providers you need:
 After saving a provider, click `Select` next to it.
 
 ## Generate Voice Clips
+
+![Voice window](Doc/tts-window.png)
 
 1. Open the `Voice` tab.
 2. Select the same source asset provider used for translation.
