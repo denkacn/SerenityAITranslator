@@ -12,10 +12,9 @@ namespace SerenityAITranslator.Editor.Services.Translation.AiProviders
     {
         public override async Task<TranslatedResultData> GetTranslate(TranslatedPromtData promtData, TranslateProviderConfigurationItem settings, PromtFactoryBase promtFactory)
         {
+            var token = await GetToken(settings);
+            var url = $"{string.Concat(settings.Host, settings.Endpoint)}?key={token}";
             
-            var url = $"{string.Concat(settings.Host, settings.Endpoint)}?key={settings.Token}";
-            
-            Debug.Log(url);
             var httpClient = new HttpClient();
             
             var requestBody = new

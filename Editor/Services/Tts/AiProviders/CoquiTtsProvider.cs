@@ -46,7 +46,7 @@ namespace SerenityAITranslator.Editor.Services.Tts.AiProviders
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Ошибка: {ex.Message}");
+                Debug.LogError($"[CoquiTtsProvider] Request failed: {ex.Message}");
             }
             
             return new TtsResultData(Prefix, Extension).Failure();

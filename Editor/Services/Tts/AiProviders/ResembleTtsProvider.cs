@@ -22,8 +22,6 @@ namespace SerenityAITranslator.Editor.Services.Tts.AiProviders
             TtsProvidersConfigurationItem settings, string promt)
         {
             var apiKey = await GetToken(settings);
-            
-            Debug.Log($"Resemble API Key: {apiKey}");
 
             var handler = new HttpClientHandler
             {

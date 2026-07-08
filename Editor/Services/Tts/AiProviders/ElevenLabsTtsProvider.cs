@@ -47,22 +47,22 @@ namespace SerenityAITranslator.Editor.Services.Tts.AiProviders
                     var audioBytes = await response.Content.ReadAsByteArrayAsync();
                     
                     await File.WriteAllBytesAsync($"{promtData.Path}_{Prefix}{Extension}", audioBytes);
-                    Console.WriteLine($"Audio saved as: {promtData.Path}_{Prefix}{Extension}");
+                    UnityEngine.Debug.Log($"Audio saved as: {promtData.Path}_{Prefix}{Extension}");
                     return new TtsResultData(Prefix, Extension);
                 }
                 else
                 {
                     var errorText = await response.Content.ReadAsStringAsync();
                     
-                    Console.WriteLine($"Error: {response.StatusCode}");
-                    Console.WriteLine($"Message: {errorText}");
+                    UnityEngine.Debug.LogError($"[ElevenLabsTtsProvider] Error: {response.StatusCode}");
+                    UnityEngine.Debug.LogError($"[ElevenLabsTtsProvider] Message: {errorText}");
                     
                     return new TtsResultData(Prefix, Extension).Failure();
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Exception: {ex.Message}");
+                UnityEngine.Debug.LogError($"[ElevenLabsTtsProvider] Exception: {ex.Message}");
                 return new TtsResultData(Prefix, Extension).Failure();
             }
         }

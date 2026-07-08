@@ -14,7 +14,6 @@ namespace SerenityAITranslator.Editor.Services.Translation.AiProviders
         {
             var apiKey = await GetToken(settings);
             var url = $"{string.Concat(settings.Host, settings.Endpoint)}{settings.Model}:generateContent";
-            Debug.Log(url);
             
             var jsonBody = JsonConvert.SerializeObject(new RequestBody(promtFactory.GetPromt(promtData)));
             var bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonBody);

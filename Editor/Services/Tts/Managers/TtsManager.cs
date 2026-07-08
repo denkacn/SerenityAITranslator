@@ -20,6 +20,7 @@ namespace SerenityAITranslator.Editor.Services.Tts.Managers
         private readonly SerenityContext _context;
         private CancellationTokenSource _ttsCancellationTokenSource = new CancellationTokenSource();
         private TranslatedRowData _translatedRowData;
+        private bool _isTtsStarted;
         
         public string SelectedTtsProviderId => _context.SessionData.TtsSessionData.TtsSettings != null ? _context.SessionData.TtsSessionData.TtsSettings.Id : string.Empty;
         public bool IsTtsProviderAndTtsSettingSetup => _context != null && _context.SessionData.TtsSessionData.TranslateProvider != null && _context.SessionData.TtsSessionData.TtsSettings != null;
@@ -32,7 +33,7 @@ namespace SerenityAITranslator.Editor.Services.Tts.Managers
             var ttsSessionData = _context.SessionData.TtsSessionData;
             if (!string.IsNullOrEmpty(ttsSessionData.ProviderId))
             {
-                var provider = _context.TtsProvidersConfigurations.Providers.Find(a => a.Id == ttsSessionData.ProviderId);
+                var provider = _context.TtsProvidersConfigurations?.Providers?.Find(a => a.Id == ttsSessionData.ProviderId);
                 if (provider != null)
                     SelectTranslateProviderSettings(provider);
             }
@@ -40,6 +41,8 @@ namespace SerenityAITranslator.Editor.Services.Tts.Managers
 
         public void SelectPromt(PromtSettingsItem promtData)
         {
+            if (promtData == null) return;
+            
             var ttsSessionData = _context.SessionData.TtsSessionData;
             ttsSessionData.SelectedPromt = promtData.Promt;
 
@@ -53,6 +56,8 @@ namespace SerenityAITranslator.Editor.Services.Tts.Managers
 
         public void SelectTranslateProviderSettings(TtsProvidersConfigurationItem provider)
         {
+            if (provider == null) return;
+            
             var ttsSessionData = _context.SessionData.TtsSessionData;
             ttsSessionData.ProviderId = provider.Id;
             ttsSessionData.TtsSettings = provider;
@@ -82,9 +87,12 @@ namespace SerenityAITranslator.Editor.Services.Tts.Managers
 
         public void TranslateOne(TranslatedRowData row, Action repaint)
         {
-            //var ttsSessionData = _context.SessionData.TtsSessionData;
+            if (_isTtsStarted) return;
+            
+            _isTtsStarted = true;
+            _ttsCancellationTokenSource?.Dispose();
             _ttsCancellationTokenSource = new CancellationTokenSource();
-            TranslateOneAsync(row, repaint, _ttsCancellationTokenSource.Token).ConfigureAwait(false);
+            _ = RunTtsProcessAsync(row, repaint, _ttsCancellationTokenSource.Token);
         }
 
         public void CreateVoiceLibrary()
@@ -102,10 +110,16 @@ namespace SerenityAITranslator.Editor.Services.Tts.Managers
                 var voicesCollection = AssetsUtility.LoadOrCreate<VoicesCollection>(voicesLibraryPath);
                 _context.SetupVoicesCollection(voicesCollection);
             }
+            else if (_context.VoicesCollection == null)
+            {
+                _context.SetupVoicesCollection(AssetsUtility.LoadOrCreate<VoicesCollection>(voicesLibraryPath));
+            }
         }
 
         public void Play(TranslatedRowData translatedData)
         {
+            if (translatedData == null || _context.VoicesCollection == null) return;
+            
             if (AudioClipTools.IsPlaying()) AudioClipTools.StopAll();
             
             var language = _context.SessionData.TranslationSessionData.SourceLanguage;
@@ -128,10 +142,46 @@ namespace SerenityAITranslator.Editor.Services.Tts.Managers
         
         private async Task TranslateOneAsync(TranslatedRowData translatedData, Action onCompleted, CancellationToken cancellationToken = default)
         {
+            if (translatedData == null)
+            {
+                Debug.LogWarning("[SerenityAI] TTS row is not selected.");
+                return;
+            }
+            
             var ttsSessionData = _context.SessionData.TtsSessionData;
-            var correctLanguage = _context.LanguageConverterData.ConvertLanguageName(_context.SessionData.TranslationSessionData.SourceLanguage);
+            if (ttsSessionData.TranslateProvider == null || ttsSessionData.TtsSettings == null)
+            {
+                Debug.LogWarning("[SerenityAI] TTS provider is not configured.");
+                return;
+            }
+            
+            if (string.IsNullOrEmpty(ttsSessionData.VoicesLibraryPath))
+            {
+                CreateVoiceLibrary();
+            }
+            
+            if (_context.VoicesCollection == null || string.IsNullOrEmpty(ttsSessionData.VoicesLibraryPath))
+            {
+                Debug.LogWarning("[SerenityAI] Voice library is not configured.");
+                return;
+            }
+            
+            var correctLanguage = _context.LanguageConverterData?.ConvertLanguageName(_context.SessionData.TranslationSessionData.SourceLanguage);
+            if (string.IsNullOrEmpty(correctLanguage))
+            {
+                Debug.LogWarning("[SerenityAI] Could not convert source language to TTS language code.");
+                return;
+            }
+            
             var path = Path.Combine(PathUtils.GetFullDirectory(ttsSessionData.VoicesLibraryPath), $"{correctLanguage}_{FileNameSanitizer.Sanitize(translatedData.Term)}");
-            var promtData = new TtsPromtData(translatedData.SourceText.TrimEnd(), correctLanguage, path);
+            var text = translatedData.SourceText?.TrimEnd();
+            if (string.IsNullOrEmpty(text))
+            {
+                Debug.LogWarning("[SerenityAI] TTS source text is empty.");
+                return;
+            }
+            
+            var promtData = new TtsPromtData(text, correctLanguage, path);
             var result = await ttsSessionData.TranslateProvider
                 .GetTranslate(promtData, ttsSessionData.TtsSettings, ttsSessionData.SelectedPromt);
 
@@ -172,11 +222,38 @@ namespace SerenityAITranslator.Editor.Services.Tts.Managers
 
         public void DeleteVoice(string term, Action repaint)
         {
+            if (_context.VoicesCollection == null)
+            {
+                repaint?.Invoke();
+                return;
+            }
+            
             var language = _context.SessionData.TranslationSessionData.SourceLanguage;
             
             _context.VoicesCollection.Remove(term, language);
             _context.Save();
             repaint?.Invoke();
+        }
+        
+        private async Task RunTtsProcessAsync(TranslatedRowData row, Action repaint, CancellationToken cancellationToken)
+        {
+            try
+            {
+                await TranslateOneAsync(row, repaint, cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                Debug.Log("[SerenityAI] TTS process canceled.");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[SerenityAI] TTS process failed: {ex}");
+            }
+            finally
+            {
+                _isTtsStarted = false;
+                repaint?.Invoke();
+            }
         }
     }
 }

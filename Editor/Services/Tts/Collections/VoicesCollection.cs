@@ -10,7 +10,8 @@ namespace SerenityAITranslator.Editor.Services.Tts.Collections
 
         public void Add(VoiceItem voiceItem)
         {
-            if (string.IsNullOrEmpty(voiceItem.Term)) return;
+            if (voiceItem == null || string.IsNullOrEmpty(voiceItem.Term)) return;
+            if (Voices == null) Voices = new List<VoicePack>();
 
             var pack = Voices.Find(p => p.Term == voiceItem.Term);
             if (pack == null)
@@ -38,25 +39,34 @@ namespace SerenityAITranslator.Editor.Services.Tts.Collections
 
         public VoiceItem Get(string term, string language)
         {
+            if (string.IsNullOrEmpty(term) || string.IsNullOrEmpty(language)) return null;
+            if (Voices == null) return null;
+            
             var pack = Voices.Find(p => p.Term == term);
             return pack?.VoiceItems.Find(v => v.Language == language);
         }
 
         public bool IsExist(string term, string language)
         {
+            if (string.IsNullOrEmpty(term) || string.IsNullOrEmpty(language)) return false;
+            if (Voices == null) return false;
+            
             var pack = Voices.Find(p => p.Term == term);
             return pack?.VoiceItems.Find(v => v.Language == language) != null;
         }
 
         public List<string> GetLanguagesForTerms(string term, LanguageConverterData languageConverter)
         {
+            if (Voices == null) return new List<string>();
+            
             var pack = Voices.Find(p => p.Term == term);
             var languages = new List<string>();
             if (pack != null)
             {
                 foreach (var voiceItem in pack.VoiceItems)
                 {
-                    languages.Add(languageConverter.ConvertLanguageName(voiceItem.Language));
+                    if (languageConverter != null && voiceItem != null)
+                        languages.Add(languageConverter.ConvertLanguageName(voiceItem.Language));
                 }
             }
 
@@ -65,10 +75,18 @@ namespace SerenityAITranslator.Editor.Services.Tts.Collections
 
         public void Remove(string term, string language)
         {
-            var pack = Voices.Find(p => p.Term == term);
-            var voiceItem = pack.VoiceItems.Find(v => v.Language == language);
+            if (string.IsNullOrEmpty(term) || string.IsNullOrEmpty(language)) return;
+            if (Voices == null) return;
             
-            DestroyImmediate(voiceItem.VoiceClip, true);
+            var pack = Voices.Find(p => p.Term == term);
+            if (pack == null) return;
+            if (pack.VoiceItems == null) return;
+            
+            var voiceItem = pack.VoiceItems.Find(v => v.Language == language);
+            if (voiceItem == null) return;
+            
+            if (voiceItem.VoiceClip != null)
+                DestroyImmediate(voiceItem.VoiceClip, true);
             
             pack.VoiceItems.RemoveAll(l => l.Language == language);
         }
